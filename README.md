@@ -50,8 +50,26 @@ Static hosting: serve `build/` with every unknown path rewritten to `index.html`
 (`vercel.json` does this on Vercel). To repoint an existing build, edit
 `build/env-config.js`; no rebuild is needed.
 
-The backend must allow the storefront origin in CORS
-(`-Dshopizer.cors.allowed-origins=https://your-shop.example.com`).
+### Cross-origin vs same-origin
+
+When the storefront and the API are on different origins, the backend must
+allow the storefront origin (`-Dshopizer.cors.allowed-origins=https://shop.example.com`)
+**and** list `Idempotency-Key` in `Access-Control-Allow-Headers`. The backend
+currently hard-codes that header list without `Idempotency-Key`, so a browser
+blocks the checkout preflight and checkout cannot complete cross-origin.
+
+Until that is changed, serve the API from the storefront origin through a
+reverse proxy and set `APP_API_URL=/api` (a relative value is resolved against
+the page origin). nginx:
+
+```nginx
+location /api/      { proxy_pass http://backend:8080; }
+location /actuator/ { proxy_pass http://backend:8080; }
+location /          { root /usr/share/nginx/html; try_files $uri $uri/ /index.html; }
+```
+
+On Vercel, add `{ "source": "/api/:path*", "destination": "https://api.example.com/api/:path*" }`
+(and the same for `/actuator/:path*`) before the catch-all rewrite in `vercel.json`.
 
 ## Environment variables
 
