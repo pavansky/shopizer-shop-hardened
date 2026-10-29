@@ -12,6 +12,9 @@ import rootReducer from "./redux/reducers/rootReducer";
 import App from "./App";
 import "./assets/scss/style.scss";
 import * as serviceWorker from "./serviceWorker";
+import { setUnauthorizedHandler } from "./util/webService";
+import { setLocalData } from "./util/helper";
+import { setUser } from "./redux/actions/userAction";
 
 import { composeWithDevTools } from "redux-devtools-extension";
 
@@ -20,6 +23,21 @@ const store = createStore(
   load(),
   composeWithDevTools(applyMiddleware(thunk, save()))
 );
+
+// An expired or revoked token: drop the session and send the shopper to
+// the login page instead of leaving every authenticated call failing.
+let handlingUnauthorized = false;
+setUnauthorizedHandler(() => {
+  if (handlingUnauthorized) return;
+  handlingUnauthorized = true;
+  setLocalData("token", "");
+  store.dispatch(setUser(""));
+  if (window.location.pathname !== "/login") {
+    window.location.assign("/login");
+  } else {
+    handlingUnauthorized = false;
+  }
+});
 
 // fetch products from json file
 // store.dispatch(fetchProducts(products));
