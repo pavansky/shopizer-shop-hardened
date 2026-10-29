@@ -20,9 +20,9 @@ import {
 } from '@stripe/react-stripe-js';
 import { useToasts } from "react-toast-notifications";
 import { setLoader } from "../../redux/actions/loaderActions";
-// import {
-//   deleteAllFromCart
-// } from "../../redux/actions/cartActions";
+import {
+  deleteAllFromCart
+} from "../../redux/actions/cartActions";
 import Script from 'react-load-script';
 import { multilanguage } from "redux-multilanguage";
 import env from '../../util/env';
@@ -1326,7 +1326,9 @@ const mapDispatchToProps = dispatch => {
       dispatch(getShippingState(code));
     },
     deleteAllFromCart: (orderID) => {
-      //dispatch(deleteAllFromCart(orderID));
+      // The backend consumes the cart on checkout; drop it locally too so
+      // the next visit starts a new cart instead of reusing a dead code.
+      dispatch(deleteAllFromCart(orderID));
     },
   };
 };
