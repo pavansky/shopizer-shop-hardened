@@ -64,7 +64,7 @@ const cartReducer = (state = initState, action) => {
       //remove from cookie
       var cart_cookie = env.APP_MERCHANT + '_shopizer_cart';
       const cookies = new Cookies();
-      cookies.remove(cart_cookie);
+      cookies.remove(cart_cookie, { path: '/' });
       removeLocalData(GET_SHOPIZER_CART_ID);
       return {
         ...state,
@@ -86,8 +86,9 @@ const cartReducer = (state = initState, action) => {
   if (action.type === DELETE_ALL_FROM_CART) {
     var cart_cookie1 = env.APP_MERCHANT + '_shopizer_cart';
     const cookies = new Cookies();
-    cookies.remove(cart_cookie1);
+    cookies.remove(cart_cookie1, { path: '/' });
     removeLocalData(cart_cookie1);
+    removeLocalData(GET_SHOPIZER_CART_ID);
     return {
       ...state,
       cartItems: {},

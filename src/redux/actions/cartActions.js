@@ -161,13 +161,17 @@ export const deleteFromCart = (cartID, item, defaultStore, addToast) => {
   return async dispatch => {
     dispatch(setLoader(true))
     try {
-      let action = constant.ACTION.CART + cartID + '/' + constant.ACTION.PRODUCT + item.id + '?store=' + env.APP_MERCHANT;
-      await WebService.delete(action);
+      // DELETE /api/v1/cart/{code}/product/{sku}; the route is keyed by SKU,
+      // not by product id. body=true returns the remaining cart (empty body
+      // once the last item is gone), which becomes the new cart state.
+      let action = constant.ACTION.CART + cartID + '/' + constant.ACTION.PRODUCT + encodeURIComponent(item.sku) + '?store=' + env.APP_MERCHANT + '&body=true';
+      let remaining = await WebService.delete(action);
 
-      dispatch({
-        type: DELETE_FROM_CART,
-        payload: item
-      });
+      if (remaining && Array.isArray(remaining.products) && remaining.products.length > 0) {
+        dispatch({ type: GET_CART, payload: remaining });
+      } else {
+        dispatch(deleteAllFromCart());
+      }
       dispatch(setLoader(false))
       if (addToast) {
         addToast("Removed From Cart", { appearance: "error", autoDismiss: true });
