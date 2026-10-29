@@ -368,7 +368,8 @@ const MyAccount = ({ language, setUser, deleteAllFromCart, merchant, strings, lo
   const onChangePassword = async (data) => {
     setLoader(true)
     try {
-      let action = constant.ACTION.CUSTOMER + constant.ACTION.PASSWORD;
+      // POST /api/v1/auth/customer/password (authenticated)
+      let action = constant.ACTION.AUTH + constant.ACTION.CUSTOMER + 'password';
       let param = {
         "password": data.password,
         "repeatPassword": data.repeatPassword,
