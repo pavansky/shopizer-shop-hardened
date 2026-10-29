@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import MetaTags from "react-meta-tags";
 import { connect } from "react-redux";
@@ -28,6 +28,8 @@ import { multilanguage } from "redux-multilanguage";
 import env from '../../util/env';
 
 
+
+import { newIdempotencyKey, submitCheckout, isOutcomeUnknown, PAYMENT_PENDING } from '../../util/checkout';
 
 // Only a publishable key (pk_...) reaches the browser; see util/env.js.
 // Without one the checkout offers the money order (offline) payment.
@@ -267,6 +269,11 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
 
 
   const [ref, setRef] = useState(null)
+  // One Idempotency-Key per checkout attempt. It is kept while the outcome
+  // of the attempt is unknown (network error, gateway timeout), so pressing
+  // the button again replays the same attempt instead of placing a second
+  // order, and is discarded once the backend gives a definite answer.
+  const attemptKey = useRef(null);
   useEffect(() => {
     getSummaryOrder()
     // getNuviePayment()
@@ -633,9 +640,21 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     }
     // console.log(param);
     // 
+    if (!attemptKey.current) {
+      attemptKey.current = newIdempotencyKey();
+    }
     try {
-      let response = await WebService.post(action, param);
-      if (response) {
+      let response = await submitCheckout(action, param, attemptKey.current);
+      attemptKey.current = null;
+      if (response && response.errorCode === PAYMENT_PENDING) {
+        // 202: the order exists and the gateway is still confirming the
+        // payment. Not an error, and the shopper must not pay again.
+        reset({})
+        if (ref) ref.clear()
+        deleteAllFromCart()
+        setLocalData('order-email', data.email)
+        history.push('/order-pending')
+      } else if (response) {
         reset({})
         if (ref) ref.clear()
         deleteAllFromCart(response.id)
@@ -646,11 +665,17 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       setLoader(false)
     } catch (error) {
       const status = error && error.response ? error.response.status : 0;
-      if (isAccount && status === 409) {
-        addToast("Registering customer already exist", { appearance: "error", autoDismiss: true });
+      if (isOutcomeUnknown(status)) {
+        // Keep attemptKey: submitting again replays this attempt.
+        addToast("We could not confirm your order. Please try again; you will not be charged twice.", { appearance: "error", autoDismiss: true });
       } else {
-        const message = error.response && error.response.data && error.response.data.message;
-        addToast(message || "Your order submission has been failed", { appearance: "error", autoDismiss: true });
+        attemptKey.current = null;
+        if (isAccount && status === 409) {
+          addToast("Registering customer already exist", { appearance: "error", autoDismiss: true });
+        } else {
+          const message = error.response && error.response.data && error.response.data.message;
+          addToast(message || "Your order submission has been failed", { appearance: "error", autoDismiss: true });
+        }
       }
       setLoader(false)
     }

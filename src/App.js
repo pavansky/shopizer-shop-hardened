@@ -42,6 +42,7 @@ const Checkout = lazy(() => import("./pages/other/Checkout"));
 
 const NotFound = lazy(() => import("./pages/other/NotFound"));
 const OrderConfirm = lazy(() => import("./pages/other/OrderConfirm"));
+const OrderPending = lazy(() => import("./pages/other/OrderPending"));
 const Content = lazy(() => import("./pages/content/Content"));
 const SearchProduct = lazy(() => import("./pages/search-product/SearchProduct"));
 
@@ -168,6 +169,11 @@ const App = (props) => {
                 <Route
                   path="/order-confirm"
                   component={OrderConfirm}
+                />
+
+                <Route
+                  path="/order-pending"
+                  component={OrderPending}
                 />
 
                 <Route

@@ -8,8 +8,8 @@ axios.defaults.baseURL = BASE_URL
 export default class WebService {
 
 
-    static async post(action, params) {
-        let response = await axios.post(action, params)
+    static async post(action, params, config) {
+        let response = await axios.post(action, params, config)
         return response.data
     }
     static async put(action, params) {
