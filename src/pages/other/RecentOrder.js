@@ -38,7 +38,7 @@ const RecentOrder = ({
 
   const getOrder = async () => {
     setLoader(true)
-    let action = constant.ACTION.AUTH + constant.ACTION.ORDERS;
+    let action = constant.ACTION.AUTH + 'orders';
     try {
       let response = await WebService.get(action);
       if (response) {

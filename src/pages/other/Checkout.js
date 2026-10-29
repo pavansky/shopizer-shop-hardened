@@ -544,7 +544,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     // });
   }
   const orderTotal = () => {
-    const total = shippingQuote.find(q => q.code === 'total') || shippingQuote[shippingQuote.length - 1];
+    const total = shippingQuote.find(q => q.module === 'total' || q.code === 'order.total.total') || shippingQuote[shippingQuote.length - 1];
     return total ? total.value : cartItems.total;
   }
   // paymentToken is the Stripe card token, or null for a money order.
