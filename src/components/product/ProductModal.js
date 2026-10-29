@@ -11,8 +11,7 @@ import 'swiper/swiper.scss'
 import { Modal } from "react-bootstrap";
 // import Rating from "./sub-components/ProductRating";
 import { connect } from "react-redux";
-import WebService from '../../util/webService';
-import constant from '../../util/constant';
+import { fetchVariantPrice } from '../../util/productPrice';
 import { setLoader } from "../../redux/actions/loaderActions";
 import StarRatings from 'react-star-ratings';
 function ProductModal(props, strings) {
@@ -93,7 +92,7 @@ function ProductModal(props, strings) {
       product.options.map(async (item) => {
         item.optionValues.map(async (data) => {
           if (data.defaultValue) {
-            temp.push({ 'name': item.name, 'id': data.id });
+            temp.push({ 'name': item.name, 'option': item.id, 'id': data.id });
           }
         })
       })
@@ -112,14 +111,14 @@ function ProductModal(props, strings) {
     }
 
     if (index === -1) {
-      let temp = [...selectedProductColor, { 'name': option.name, 'id': value.id }]
+      let temp = [...selectedProductColor, { 'name': option.name, 'option': option.id, 'id': value.id }]
       tempSelectedOptions = temp;
       setSelectedProductColor(temp)
-      // setSelectedProductColor([...selectedProductColor, { 'name': option.name, 'id': value.id }])
+      // setSelectedProductColor([...selectedProductColor, { 'name': option.name, 'option': option.id, 'id': value.id }])
     } else {
       let temp = [...selectedProductColor]
       if (option.type === 'radio' || option.type === 'select') {
-        temp[index] = { 'name': option.name, 'id': value.id };
+        temp[index] = { 'name': option.name, 'option': option.id, 'id': value.id };
 
       } else {
         temp.splice(index, 1);
@@ -131,16 +130,15 @@ function ProductModal(props, strings) {
   }
   const getPrice = async (tempSelectedOptions) => {
     setLoader(true)
-    let action = constant.ACTION.PRODUCT + product.id + '/' + constant.ACTION.PRICE;
-    let param = { "options": tempSelectedOptions }
     try {
-      let response = await WebService.post(action, param);
+      let response = await fetchVariantPrice(product.id, tempSelectedOptions);
       if (response) {
         setDiscountedPrice(response.finalPrice);
         setProductPrice(response.originalPrice);
         setIsDiscount(response.discounted);
         setLoader(false)
       }
+      setLoader(false)
     } catch (error) {
       setLoader(false)
     }

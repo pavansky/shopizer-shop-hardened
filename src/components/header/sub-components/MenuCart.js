@@ -20,7 +20,7 @@ const MenuCart = ({ cartData, deleteFromCart, defaultStore, strings }) => {
               return (
                 <li className="single-shopping-cart" key={key}>
                   <div className="shopping-cart-img">
-                    <Link to={"/product/" + single.id}>
+                    <Link to={"/product/" + ((single.description && single.description.friendlyUrl) || single.sku)}>
                       <img alt="" src={defaultImage(single)} className="img-fluid" />
                     </Link>
                   </div>

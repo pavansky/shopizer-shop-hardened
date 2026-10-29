@@ -12,33 +12,42 @@ import WebService from '../../util/webService';
 import constant from '../../util/constant';
 import { setLoader } from "../../redux/actions/loaderActions";
 import { multilanguage } from "redux-multilanguage";
-const ProductDetails = ({ strings, location, productID, currentLanguageCode, setLoader, defaultStore }) => {
+const ProductDetails = ({ strings, location, match, currentLanguageCode, setLoader, defaultStore }) => {
   const { pathname } = location;
+  // The route parameter is the product slug (friendlyUrl). It is the only
+  // reliable key on a deep link or page reload, where no product id has been
+  // stored by a previous click.
+  const slug = match && match.params ? match.params.id : undefined;
   const [productDetails, setProductDetails] = useState();
   const [productReview, setProductReview] = useState([]);
 
   useEffect(() => {
     getProductDetails();
-    getReview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [slug]);
 
   const getProductDetails = async () => {
     setLoader(true)
-    let action = constant.ACTION.PRODUCTS + productID + '?lang=' + currentLanguageCode + '&store=' + defaultStore;
+    if (!slug) {
+      setLoader(false)
+      return
+    }
+    // GET /api/v1/product/{friendlyUrl}
+    let action = constant.ACTION.PRODUCT + encodeURIComponent(slug) + '?lang=' + currentLanguageCode + '&store=' + defaultStore;
     try {
       let response = await WebService.get(action);
       if (response) {
-        console.log(response)
         setProductDetails(response)
-        setLoader(false)
+        getReview(response.id)
       }
     } catch (error) {
-      setLoader(false)
     }
+    setLoader(false)
   }
-  const getReview = async () => {
-    let action = constant.ACTION.PRODUCTS + productID + '/reviews?store=' + defaultStore;
+  const getReview = async (id) => {
+    if (!id) return;
+    // GET /api/v1/product/{id}/reviews
+    let action = constant.ACTION.PRODUCT + id + '/reviews?store=' + defaultStore;
     try {
       let response = await WebService.get(action);
       if (response) {
@@ -103,14 +112,13 @@ const ProductDetails = ({ strings, location, productID, currentLanguageCode, set
 
 ProductDetails.propTypes = {
   location: PropTypes.object,
-  productID: PropTypes.number,
+  match: PropTypes.object,
   currentLanguageCode: PropTypes.string,
 };
 
 const mapStateToProps = (state, ownProps) => {
   // const itemId = ownProps.match.params.id;
   return {
-    productID: state.productData.productid,
     currentLanguageCode: state.multilanguage.currentLanguageCode,
     defaultStore: state.merchantData.defaultStore
   };

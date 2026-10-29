@@ -9,8 +9,7 @@ import { addToCart } from "../../redux/actions/cartActions";
 // import { addToCompare } from "../../redux/actions/compareActions";
 // import Rating from "./sub-components/ProductRating";
 import StarRatings from 'react-star-ratings';
-import WebService from '../../util/webService';
-import constant from '../../util/constant';
+import { fetchVariantPrice } from '../../util/productPrice';
 import { setLoader } from "../../redux/actions/loaderActions";
 
 const ProductDescriptionInfo = ({
@@ -48,7 +47,7 @@ const ProductDescriptionInfo = ({
       product.options.map(async (item) => {
         item.optionValues.map(async (data) => {
           if (data.defaultValue) {
-            temp.push({ 'name': item.name, 'id': data.id });
+            temp.push({ 'name': item.name, 'option': item.id, 'id': data.id });
           }
         })
       })
@@ -69,14 +68,14 @@ const ProductDescriptionInfo = ({
     }
 
     if (index === -1) {
-      let temp = [...selectedProductColor, { 'name': option.name, 'id': value.id }]
+      let temp = [...selectedProductColor, { 'name': option.name, 'option': option.id, 'id': value.id }]
       tempSelectedOptions = temp;
       setSelectedProductColor(temp)
-      // setSelectedProductColor([...selectedProductColor, { 'name': option.name, 'id': value.id }])
+      // setSelectedProductColor([...selectedProductColor, { 'name': option.name, 'option': option.id, 'id': value.id }])
     } else {
       let temp = [...selectedProductColor]
       if (option.type === 'radio' || option.type === 'select') {
-        temp[index] = { 'name': option.name, 'id': value.id };
+        temp[index] = { 'name': option.name, 'option': option.id, 'id': value.id };
 
       } else {
         temp.splice(index, 1);
@@ -90,10 +89,8 @@ const ProductDescriptionInfo = ({
   }
   const getPrice = async (tempSelectedOptions) => {
     setLoader(true)
-    let action = constant.ACTION.PRODUCT + productID + '/' + constant.ACTION.PRICE;
-    let param = { "options": tempSelectedOptions }
     try {
-      let response = await WebService.post(action, param);
+      let response = await fetchVariantPrice(product.id, tempSelectedOptions);
       if (response) {
         // setProductDetails(response)
         setDiscountedPrice(response.finalPrice);
@@ -102,6 +99,7 @@ const ProductDescriptionInfo = ({
         // finalDiscountedPrice = response.originalPrice
         setLoader(false)
       }
+      setLoader(false)
     } catch (error) {
       setLoader(false)
     }

@@ -76,7 +76,7 @@ const ProductGridSingleTwo = ({
                 </Link>
               ) : product.stock && product.stock > 0 ? ( */}
               <Link
-                to={`product/${product.description.friendlyUrl}`} onClick={() => onClickProductDetails(product.id)} title="Select options">
+                to={`/product/${product.description.friendlyUrl}`} onClick={() => onClickProductDetails(product.id)} title="Select options">
                 <i className="fa fa-cog"></i>
               </Link>
               {
