@@ -1,29 +1,21 @@
 #!/bin/bash
+# Writes env-config.js from .env, letting environment variables of the same
+# name override the defaults in .env. Run at container start so one build can
+# be pointed at any backend. Only public values belong here.
+set -euo pipefail
 
-# Recreate config file
-rm -rf ./env-config.js
-touch ./env-config.js
-
-# Add assignment 
-echo "window._env_ = {" >> ./env-config.js
-
-# Read each line in .env file
-# Each line represents key=value pairs
-while read -r line || [[ -n "$line" ]];
-do
-  # Split env variables by character `=`
-  if printf '%s\n' "$line" | grep -q -e '='; then
-    varname=$(printf '%s\n' "$line" | sed -e 's/=.*//')
-    varvalue=$(printf '%s\n' "$line" | sed -e 's/^[^=]*=//')
-  fi
-
-  # Read value of current variable if exists as Environment variable
-  value=$(printf '%s\n' "${!varname}")
-  # Otherwise use value from .env file
-  [[ -z $value ]] && value=${varvalue}
-  
-  # Append configuration property to JS file
-  echo "  $varname: \"$value\"," >> ./env-config.js
-done < .env
-
-echo "}" >> ./env-config.js
+out=./env-config.js
+{
+  echo "window._env_ = {"
+  while read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^[A-Z_][A-Z0-9_]*= ]] || continue
+    varname="${line%%=*}"
+    varvalue="${line#*=}"
+    value="${!varname:-$varvalue}"
+    # escape for a double-quoted JS string
+    value="${value//\\/\\\\}"
+    value="${value//\"/\\\"}"
+    echo "  $varname: \"$value\","
+  done < .env
+  echo "}"
+} > "$out"

@@ -11,6 +11,7 @@ import { multilanguage } from "redux-multilanguage";
 import IdleTimer from 'react-idle-timer';
 import constant from '../../util/constant';
 import WebService from '../../util/webService';
+import env from '../../util/env';
 const IconGroup = ({
   // currency,
   cartData,
@@ -34,11 +35,11 @@ const IconGroup = ({
   const [useDetails, setUseDetails] = useState({});
   useEffect(() => {
     // getCart(cartData.code, userData)
-    if (getLocalData('thekey') === window._env_.APP_BASE_URL) {
-      setLocalData('thekey', window._env_.APP_BASE_URL)
+    if (getLocalData('thekey') === env.API_URL) {
+      setLocalData('thekey', env.API_URL)
     } else {
       logout()
-      setLocalData('thekey', window._env_.APP_BASE_URL)
+      setLocalData('thekey', env.API_URL)
     }
     // let startTime = new Date(getLocalData('session'));
     // let endTime = new Date();

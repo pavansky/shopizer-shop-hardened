@@ -1,6 +1,7 @@
 import WebService from '../../util/webService';
 import constant from '../../util/constant';
 import Geocode from "react-geocode";
+import env from '../../util/env';
 // import { changeLanguage } from 'redux-multilanguage';
 export const SET_USER = "SET_USER";
 export const SET_COUNTRY = "SET_COUNTRY";
@@ -8,7 +9,7 @@ export const SET_SHIPPING_COUNTRY = "SET_SHIPPING_COUNTRY";
 export const SET_STATE = "SET_STATE";
 export const SET_SHIP_STATE = "SET_SHIP_STATE";
 export const GET_CURRENT_ADDRESS = "GET_CURRENT_ADDRESS";
-Geocode.setApiKey(window._env_.APP_MAP_API_KEY);
+Geocode.setApiKey(env.APP_MAP_API_KEY);
 Geocode.setLanguage("en");
 export const setUser = (data) => {
     return async dispatch => {
@@ -21,7 +22,7 @@ export const setUser = (data) => {
 export const getCountry = (lang) => {
     return async dispatch => {
         try {
-            let action = constant.ACTION.COUNTRY + '?store=' + window._env_.APP_MERCHANT + '&lang=' + lang;
+            let action = constant.ACTION.COUNTRY + '?store=' + env.APP_MERCHANT + '&lang=' + lang;
             let response = await WebService.get(action);
             dispatch({
                 type: SET_COUNTRY,
@@ -35,7 +36,7 @@ export const getCountry = (lang) => {
 export const getShippingCountry = (lang) => {
     return async dispatch => {
         try {
-            let action = constant.ACTION.SHIPPING_COUNTRY + '?store=' + window._env_.APP_MERCHANT + '&lang=' + lang;
+            let action = constant.ACTION.SHIPPING_COUNTRY + '?store=' + env.APP_MERCHANT + '&lang=' + lang;
             let response = await WebService.get(action);
             dispatch({
                 type: SET_SHIPPING_COUNTRY,

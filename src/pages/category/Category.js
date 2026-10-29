@@ -18,6 +18,7 @@ import { setLoader } from "../../redux/actions/loaderActions";
 import { multilanguage } from "redux-multilanguage";
 import { setCategoryID } from "../../redux/actions/productActions";
 import ReactPaginate from 'react-paginate';
+import env from '../../util/env';
 
 const Category = ({ setCategoryID, isLoading, strings, location, defaultStore, currentLanguageCode, categoryID, setLoader, }) => {
     const [layout, setLayout] = useState('grid three-column');
@@ -29,7 +30,7 @@ const Category = ({ setCategoryID, isLoading, strings, location, defaultStore, c
     const [offset, setOffset] = useState(0);
     // const [skip, setSkip] = useState(0);
     const [currentPage, setCurrentPage] = useState(0);
-    const pageLimit = parseInt(window._env_.APP_PRODUCT_GRID_LIMIT) || 12;
+    const pageLimit = parseInt(env.APP_PRODUCT_GRID_LIMIT) || 12;
     const [productData, setProductData] = useState([]);
     const [totalProduct, setTotalProduct] = useState(0);
     const [productDetails, setProductDetails] = useState('');

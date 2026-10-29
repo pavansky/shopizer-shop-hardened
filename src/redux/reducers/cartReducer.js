@@ -11,6 +11,7 @@ import {
   GET_CART,
   GET_SHOPIZER_CART_ID
 } from "../actions/cartActions";
+import env from '../../util/env';
 
 const initState = {
   cartItems: {},
@@ -61,7 +62,7 @@ const cartReducer = (state = initState, action) => {
     if (cartItems.cartItems.products.length === 0) {
       //remove from local storage
       //remove from cookie
-      var cart_cookie = window._env_.APP_MERCHANT + '_shopizer_cart';
+      var cart_cookie = env.APP_MERCHANT + '_shopizer_cart';
       const cookies = new Cookies();
       cookies.remove(cart_cookie);
       removeLocalData(GET_SHOPIZER_CART_ID);
@@ -83,7 +84,7 @@ const cartReducer = (state = initState, action) => {
   }
 
   if (action.type === DELETE_ALL_FROM_CART) {
-    var cart_cookie1 = window._env_.APP_MERCHANT + '_shopizer_cart';
+    var cart_cookie1 = env.APP_MERCHANT + '_shopizer_cart';
     const cookies = new Cookies();
     cookies.remove(cart_cookie1);
     removeLocalData(cart_cookie1);

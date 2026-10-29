@@ -4,6 +4,7 @@ import constant from '../../util/constant';
 import { setLoader } from "../actions/loaderActions";
 import { setLocalData, getLocalData } from '../../util/helper';
 import Cookies from 'universal-cookie';
+import env from '../../util/env';
 export const GET_SHOPIZER_CART_ID = "GET_SHOPIZER_CART_ID";
 export const GET_CART = "GET_CART";
 export const ADD_TO_CART = "ADD_TO_CART";
@@ -30,11 +31,11 @@ export const addToCart = (item, addToast, cartId, quantityCount, defaultStore, u
       console.log('Cart parameters ' + JSON.stringify(param));
       if (cartId) {
         message = "Updated Cart"
-        action = constant.ACTION.CART + cartId + '?store=' + window._env_.APP_MERCHANT;
+        action = constant.ACTION.CART + cartId + '?store=' + env.APP_MERCHANT;
         response = await WebService.put(action, param);
       } else {
         message = "Added Cart"
-        action = constant.ACTION.CART + '?store=' + window._env_.APP_MERCHANT
+        action = constant.ACTION.CART + '?store=' + env.APP_MERCHANT
         response = await WebService.post(action, param);
       }
 
@@ -98,7 +99,7 @@ export const getCart = (cartID, userData) => {
 export const setShopizerCartID = (id) => {
   //set local data
   // set cart id in cookie
-  var cart_cookie = window._env_.APP_MERCHANT + '_shopizer_cart';
+  var cart_cookie = env.APP_MERCHANT + '_shopizer_cart';
   const cookies = new Cookies();
   cookies.set(cart_cookie, id, { path: '/', maxAge: 20000000 });//6 months
   setLocalData(GET_SHOPIZER_CART_ID, id);
@@ -113,7 +114,7 @@ export const setShopizerCartID = (id) => {
 export const getShopizerCartID = () => {
   //set local data
   // set cart id in cookie
-  var cart_cookie = window._env_.APP_MERCHANT + '_shopizer_cart';
+  var cart_cookie = env.APP_MERCHANT + '_shopizer_cart';
   const cookies = new Cookies();
   let cookie = cookies.get(cart_cookie);
   if (cookie) {
@@ -160,7 +161,7 @@ export const deleteFromCart = (cartID, item, defaultStore, addToast) => {
   return async dispatch => {
     dispatch(setLoader(true))
     try {
-      let action = constant.ACTION.CART + cartID + '/' + constant.ACTION.PRODUCT + item.id + '?store=' + window._env_.APP_MERCHANT;
+      let action = constant.ACTION.CART + cartID + '/' + constant.ACTION.PRODUCT + item.id + '?store=' + env.APP_MERCHANT;
       await WebService.delete(action);
 
       dispatch({

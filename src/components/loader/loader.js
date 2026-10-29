@@ -2,6 +2,7 @@
 import React from "react";
 import BounceLoader from "react-spinners/BounceLoader";
 import { connect } from "react-redux";
+import env from '../../util/env';
 
 const Loader = ({ isLoading }) => {
     return (
@@ -9,7 +10,7 @@ const Loader = ({ isLoading }) => {
             <BounceLoader
                 size={100}
                 // color={"#fb799c"}
-                color={window._env_.APP_THEME_COLOR}
+                color={env.APP_THEME_COLOR}
                 loading={isLoading}
             />
         </div>

@@ -20,6 +20,7 @@ import SweetAlert from 'react-bootstrap-sweetalert';
 import { deleteAllFromCart } from "../../redux/actions/cartActions";
 import { setUser } from "../../redux/actions/userAction";
 import { setLocalData } from '../../util/helper';
+import env from '../../util/env';
 const changePasswordForm = {
   userName: {
     name: "userName",
@@ -762,7 +763,7 @@ const MyAccount = ({ language, setUser, deleteAllFromCart, merchant, strings, lo
                                 <div className="col-lg-12">
                                   <div className="billing-info mb-20">
                                     <Script
-                                      url={"https://maps.googleapis.com/maps/api/js?key=" + window._env_.APP_MAP_API_KEY + "&libraries=places"}
+                                      url={"https://maps.googleapis.com/maps/api/js?key=" + env.APP_MAP_API_KEY + "&libraries=places"}
                                       onLoad={handleScriptLoad}
                                     />
                                     <label>{strings["Street Address"]}</label>
@@ -909,7 +910,7 @@ const MyAccount = ({ language, setUser, deleteAllFromCart, merchant, strings, lo
                                 <div className="col-lg-12">
                                   <div className="billing-info mb-20">
                                     <Script
-                                      url={"https://maps.googleapis.com/maps/api/js?key=" + window._env_.APP_MAP_API_KEY + "&libraries=places"}
+                                      url={"https://maps.googleapis.com/maps/api/js?key=" + env.APP_MAP_API_KEY + "&libraries=places"}
                                       onLoad={handleDeliveryScriptLoad}
                                     />
                                     <label>{strings["Street Address"]}</label>

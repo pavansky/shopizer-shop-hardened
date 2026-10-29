@@ -25,10 +25,11 @@ import { setLoader } from "../../redux/actions/loaderActions";
 // } from "../../redux/actions/cartActions";
 import Script from 'react-load-script';
 import { multilanguage } from "redux-multilanguage";
+import env from '../../util/env';
 
 
 
-const stripePromise = loadStripe(window._env_.APP_STRIPE_KEY);
+const stripePromise = loadStripe(env.APP_STRIPE_KEY);
 const paymentForm = {
   firstName: {
     name: "firstName",
@@ -263,7 +264,6 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
 
 
 
-  // console.log(window._env_.APP_PAYMENT_TYPE);
   const [ref, setRef] = useState(null)
   useEffect(() => {
     getSummaryOrder()
@@ -804,7 +804,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
                           <div className="billing-info mb-20">
                             <label>{strings["Street Address"]}</label>
                             <Script
-                              url={"https://maps.googleapis.com/maps/api/js?key=" + window._env_.APP_MAP_API_KEY + "&libraries=places"}
+                              url={"https://maps.googleapis.com/maps/api/js?key=" + env.APP_MAP_API_KEY + "&libraries=places"}
                               onLoad={handleScriptLoad}
                             />
                             <input
@@ -1189,7 +1189,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
 
                       </div>
                       {
-                        window._env_.APP_PAYMENT_TYPE === 'STRIPE' &&
+                        env.APP_PAYMENT_TYPE === 'STRIPE' &&
                         <div className="payment-method mt-25">
                           <Elements stripe={stripePromise} 
                             options={{locale: currentLanguageCode}}
@@ -1234,7 +1234,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
                         </div>
                       }
                       {
-                        window._env_.APP_PAYMENT_TYPE === 'NUVEI' &&
+                        env.APP_PAYMENT_TYPE === 'NUVEI' &&
                         <iframe title="Payment Page" height={"1150"} width="570" srcDoc='<form action="https://testpayments.nuvei.com/merchant/paymentpage" method="post">
                         <input type="hidden" name="TERMINALID" value="" />
                         <input type="hidden" name="ORDERID" value="" />

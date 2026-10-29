@@ -1,11 +1,12 @@
 import WebService from '../../util/webService';
 import constant from '../../util/constant';
+import env from '../../util/env';
 export const SET_MERCHANT = "SET_MERCHANT";
 export const SET_STORE = "SET_STORE";
 
 export const setMerchant = () => {
     return async dispatch => {
-        let action = constant.ACTION.STORE + window._env_.APP_MERCHANT;
+        let action = constant.ACTION.STORE + env.APP_MERCHANT;
         try {
             let response = await WebService.get(action);
             // console.log(response);

@@ -13,6 +13,7 @@ import constant from '../../util/constant';
 // import { setLocalData } from '../../util/helper';
 import { setMerchant } from "../../redux/actions/storeAction";
 import { getCurrentLocation } from "../../redux/actions/userAction";
+import env from '../../util/env';
 const Header = ({
   setMerchant,
   merchant,
@@ -49,11 +50,9 @@ const Header = ({
     // let action = 'actuator/health/ping';
     try {
       // console.log("*********************************");
-      // console.log("BASE URL " + window._env_.APP_BASE_URL);
-      // console.log("APP_API_VERSION " + window._env_.APP_API_VERSION);
-      // console.log("APP_MERCHANT " + window._env_.APP_MERCHANT);
+      // console.log("BASE URL " + env.API_URL);
       // console.log("*********************************");
-      let response = await WebService.get(window._env_.APP_BASE_URL + '/actuator/health/ping');
+      let response = await WebService.get(env.BACKEND_URL + '/actuator/health');
 
       if (response) {
         // console.log(response)

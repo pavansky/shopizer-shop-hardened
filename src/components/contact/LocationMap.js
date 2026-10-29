@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Map, GoogleApiWrapper, Marker } from "google-maps-react";
 import { PropTypes } from "prop-types";
+import env from '../../util/env';
 
 const FooterMap = props => {
   const mapStyles = {
@@ -60,5 +61,5 @@ FooterMap.propTypes = {
 };
 
 export default GoogleApiWrapper({
-  apiKey: window._env_.APP_MAP_API_KEY
+  apiKey: env.APP_MAP_API_KEY
 })(FooterMap);
