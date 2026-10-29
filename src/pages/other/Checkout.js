@@ -29,7 +29,9 @@ import env from '../../util/env';
 
 
 
-const stripePromise = loadStripe(env.APP_STRIPE_KEY);
+// Only a publishable key (pk_...) reaches the browser; see util/env.js.
+// Without one the checkout offers the money order (offline) payment.
+const stripePromise = env.APP_PAYMENT_TYPE === 'STRIPE' ? loadStripe(env.APP_STRIPE_KEY) : null;
 const paymentForm = {
   firstName: {
     name: "firstName",
@@ -509,7 +511,9 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     setLoader(true)
 
     if( !cartID ) {
+      setLoader(false)
       history.push("/");
+      return;
     }
 
     let card = elements.getElement(CardElement);
@@ -532,8 +536,30 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     }
     // });
   }
-  const onPayment = async (data, result) => {
+  const orderTotal = () => {
+    const total = shippingQuote.find(q => q.code === 'total') || shippingQuote[shippingQuote.length - 1];
+    return total ? total.value : cartItems.total;
+  }
+  // paymentToken is the Stripe card token, or null for a money order.
+  const onPayment = async (data, paymentToken) => {
     let action;
+    if (!cartID) {
+      history.push("/");
+      return;
+    }
+    setLoader(true)
+    const payment = paymentToken ? {
+      "paymentType": "CREDITCARD",
+      "transactionType": "CAPTURE",
+      "paymentModule": "stripe",
+      "paymentToken": paymentToken,
+      "amount": orderTotal()
+    } : {
+      "paymentType": "MONEYORDER",
+      "transactionType": "CAPTURE",
+      "paymentModule": "moneyorder",
+      "amount": orderTotal()
+    };
 
     // console.log(data);
     let param = {};
@@ -542,13 +568,8 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       param = {
         "shippingQuote": selectedOptions,
         "currency": merchant.currency,
-        "payment": {
-          "paymentType": "CREDITCARD",
-          "transactionType": "CAPTURE",
-          "paymentModule": "stripe",
-          "paymentToken": result.token,
-          "amount": shippingQuote[shippingQuote.length - 1].value
-        }
+        "payment": payment,
+        "customerAgreement": true
       }
     } else {
       action = constant.ACTION.CART + cartID + '/' + constant.ACTION.CHECKOUT
@@ -566,7 +587,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
             "zone": data.stateProvince,
             "firstName": data.firstName,
             "lastName": data.lastName,
-            // "phone": data.phone
+            "phone": data.phone
           },
           "delivery": {
             "address": data.shipAddress,
@@ -578,7 +599,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
             "zone": data.shipStateProvince,
             "firstName": data.shipFirstName,
             "lastName": data.shipLastName,
-            // "phone": data.shipPhone
+            "phone": data.shipPhone
           }
         }
       } else {
@@ -594,7 +615,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
             "zone": data.stateProvince,
             "firstName": data.firstName,
             "lastName": data.lastName,
-            // "phone": data.phone
+            "phone": data.phone
           }
         }
       }
@@ -605,13 +626,8 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       param = {
         "shippingQuote": selectedOptions,
         "currency": merchant.currency,
-        "payment": {
-          "paymentType": "CREDITCARD",
-          "transactionType": "CAPTURE",
-          "paymentModule": "stripe",
-          "paymentToken": result.token,
-          "amount": shippingQuote[shippingQuote.length - 1].value
-        },
+        "payment": payment,
+        "customerAgreement": true,
         "customer": customer
       }
     }
@@ -619,10 +635,9 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     // 
     try {
       let response = await WebService.post(action, param);
-      // console.log(response)
       if (response) {
         reset({})
-        ref.clear()
+        if (ref) ref.clear()
         deleteAllFromCart(response.id)
         setLocalData('order-email', data.email)
         addToast("Your order has been submitted", { appearance: "success", autoDismiss: true });
@@ -630,11 +645,12 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       }
       setLoader(false)
     } catch (error) {
-      if (isAccount) {
+      const status = error && error.response ? error.response.status : 0;
+      if (isAccount && status === 409) {
         addToast("Registering customer already exist", { appearance: "error", autoDismiss: true });
-
       } else {
-        addToast("Your order submission has been failed", { appearance: "error", autoDismiss: true });
+        const message = error.response && error.response.data && error.response.data.message;
+        addToast(message || "Your order submission has been failed", { appearance: "error", autoDismiss: true });
       }
       setLoader(false)
     }
@@ -1234,30 +1250,31 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
                         </div>
                       }
                       {
-                        env.APP_PAYMENT_TYPE === 'NUVEI' &&
-                        <iframe title="Payment Page" height={"1150"} width="570" srcDoc='<form action="https://testpayments.nuvei.com/merchant/paymentpage" method="post">
-                        <input type="hidden" name="TERMINALID" value="" />
-                        <input type="hidden" name="ORDERID" value="" />
-                        <input type="hidden" name="CURRENCY" value="" />
-                        <input type="hidden" name="AMOUNT" value="" />
-                        <input type="hidden" name="DATETIME" value="22-01-2021:10:43:01:200" />
-                        <input type="hidden" name="HASH" value="8636622c1dd4039783cd0fbcffd53a6ce2ceab7d0e183e8ce1b8043e3cdedebe3b6665c5e87d3b268e85217f6c11f15f09f86764d82b0bd923c8c19e9209296d" />
+                        env.APP_PAYMENT_TYPE === 'MONEYORDER' &&
+                        <div className="payment-method mt-25">
+                          <p>{strings["Money order"] || "Money order"}: {strings["Pay by money order or bank transfer. Your order is held until the payment is received."] || "Pay by money order or bank transfer. Your order is held until the payment is received."}</p>
+                          <div className="place-order mt-100">
+                            <div className="login-toggle-btn mb-20">
+                              <input type="checkbox" name={paymentForm.isAgree.name} ref={register(paymentForm.isAgree.validate)} onChange={onAgreement}/>
+                              <label className="ml-10 ">{strings["I agree with the terms and conditions"]}</label>
+                              {errors[paymentForm.isAgree.name] && <p className="error-msg">{errors[paymentForm.isAgree.name].message}</p>}
+                            </div>
+                            <div>
+                              {
+                                  watch('isAgree') && 
+                                  <div className="agreement-info-wrap" dangerouslySetInnerHTML={{ __html: agreementData.replace(/>]]/g, "&gt;") }}>
+                                    {/* <textarea
+                                      readOnly={true}
+                                      name="message"
+                                      defaultValue={() => renderAgreementText(agreementData)}
+                                    /> */}
+                                  </div>
+                              }
                         
-                        <button type="submit"  style="font-weight: 500;
-                        line-height: 1;
-                        z-index: 9;
-                        display: block;
-                        width: 100%;
-                        padding: 18px 20px;
-                        text-align: center;
-                        letter-spacing: 1px;
-                        text-transform: uppercase;
-                        color: #fff;
-                        border: none;
-                        border-radius: 50px;
-                        background: none;
-                        background-color: #fb799c;"className="btn-hover">Pay now</button>
-                      </form>'></iframe>
+                            </div>
+                            <button type="button" onClick={handleSubmit((d) => onPayment(d, null))} className="btn-hover">{strings["Place your order"]}</button>
+                          </div>
+                        </div>
                       }
                           </div>
                   </div>
