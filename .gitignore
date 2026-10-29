@@ -103,3 +103,6 @@ dist
 
 #temporary configurations
 #env-config.js
+
+# production build output
+/build
