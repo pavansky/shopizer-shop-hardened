@@ -20,7 +20,7 @@ import { setCategoryID } from "../../redux/actions/productActions";
 import ReactPaginate from 'react-paginate';
 import env from '../../util/env';
 
-const Category = ({ setCategoryID, isLoading, strings, location, defaultStore, currentLanguageCode, categoryID, setLoader, }) => {
+const Category = ({ setCategoryID, isLoading, strings, location, match, defaultStore, currentLanguageCode, categoryID, setLoader, }) => {
     const [layout, setLayout] = useState('grid three-column');
     const history = useHistory();
     // const [sortType, setSortType] = useState('');
@@ -87,8 +87,26 @@ const Category = ({ setCategoryID, isLoading, strings, location, defaultStore, c
         // getProductList(categoryValue, selectedOption, selectedManufature)
     }
 
+    // On a deep link or reload no category id has been stored by a menu
+    // click; resolve it from the slug in the URL (GET /category/{friendlyUrl}).
+    const slug = match && match.params ? match.params.id : undefined;
     useEffect(() => {
+        if (!slug) return;
+        const resolveSlug = async () => {
+            try {
+                let response = await WebService.get(constant.ACTION.CATEGORY + encodeURIComponent(slug) + '?store=' + defaultStore + '&lang=' + currentLanguageCode);
+                if (response && response.id && response.id !== categoryID) {
+                    setCategoryID(response.id)
+                }
+            } catch (error) {
+            }
+        }
+        resolveSlug()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [slug]);
 
+    useEffect(() => {
+        if (!categoryID) return;
         setCategoryValue(categoryID)
         setSubCategory([])
         setColor([])
@@ -136,11 +154,12 @@ const Category = ({ setCategoryID, isLoading, strings, location, defaultStore, c
         getManufacturers(categoryid)
     }
     const getManufacturers = async (categoryid) => {
-        let action = constant.ACTION.CATEGORY + categoryid + '/' + constant.ACTION.MANUFACTURERS + '?store=' + defaultStore + '&lang=' + currentLanguageCode
+        // GET /api/v1/category/{id}/manufacturer
+        let action = constant.ACTION.CATEGORY + categoryid + '/' + constant.ACTION.MANUFACTURER + '?store=' + defaultStore + '&lang=' + currentLanguageCode
         try {
             let response = await WebService.get(action);
             //console.log(JSON.stringify(response));
-            if (response) {
+            if (Array.isArray(response)) {
                 setManufacture(response.sort())
             }
         } catch (error) {
@@ -148,11 +167,11 @@ const Category = ({ setCategoryID, isLoading, strings, location, defaultStore, c
         getVariants(categoryid)
     }
     const getVariants = async (categoryid) => {
-        let action = constant.ACTION.CATEGORY + categoryid + '/' + constant.ACTION.VARIANTS + '?store=' + defaultStore + '&lang=' + currentLanguageCode;
+        // GET /api/v2/category/{id}/variations
+        let action = env.API_V2 + constant.ACTION.CATEGORY + categoryid + '/' + constant.ACTION.VARIATIONS + '?store=' + defaultStore + '&lang=' + currentLanguageCode;
         try {
             let response = await WebService.get(action);
-            // console.log(response);
-            if (response) {
+            if (Array.isArray(response)) {
                 response.forEach(variant => {
                     if (variant.code === 'color') {
                         setColor(variant.options);
