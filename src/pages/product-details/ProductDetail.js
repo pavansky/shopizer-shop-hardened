@@ -12,7 +12,9 @@ import WebService from '../../util/webService';
 import constant from '../../util/constant';
 import { setLoader } from "../../redux/actions/loaderActions";
 import { multilanguage } from "redux-multilanguage";
-const ProductDetails = ({ strings, location, match, currentLanguageCode, setLoader, defaultStore }) => {
+import NotFound from "../other/NotFound";
+import { canonicalUrl, plainText, productJsonLd, useSeo } from "../../util/seo";
+const ProductDetails = ({ strings, location, match, currentLanguageCode, setLoader, defaultStore, merchant }) => {
   const { pathname } = location;
   // The route parameter is the product slug (friendlyUrl). It is the only
   // reliable key on a deep link or page reload, where no product id has been
@@ -20,6 +22,7 @@ const ProductDetails = ({ strings, location, match, currentLanguageCode, setLoad
   const slug = match && match.params ? match.params.id : undefined;
   const [productDetails, setProductDetails] = useState();
   const [productReview, setProductReview] = useState([]);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     getProductDetails();
@@ -30,8 +33,10 @@ const ProductDetails = ({ strings, location, match, currentLanguageCode, setLoad
     setLoader(true)
     if (!slug) {
       setLoader(false)
+      setNotFound(true)
       return
     }
+    setNotFound(false)
     // GET /api/v1/product/{friendlyUrl}
     let action = constant.ACTION.PRODUCT + encodeURIComponent(slug) + '?lang=' + currentLanguageCode + '&store=' + defaultStore;
     try {
@@ -41,6 +46,11 @@ const ProductDetails = ({ strings, location, match, currentLanguageCode, setLoad
         getReview(response.id)
       }
     } catch (error) {
+      // An unknown or hidden product renders the 404 page instead of an empty shell.
+      if (error && error.response && (error.response.status === 404 || error.response.status === 400)) {
+        setProductDetails(undefined)
+        setNotFound(true)
+      }
     }
     setLoader(false)
   }
@@ -56,14 +66,40 @@ const ProductDetails = ({ strings, location, match, currentLanguageCode, setLoad
     } catch (error) {
     }
   }
+  const description = productDetails && productDetails.description;
+  const storeName = merchant && merchant.name;
+  const productUrl = description && description.friendlyUrl
+    ? canonicalUrl("/product/" + description.friendlyUrl)
+    : undefined;
+  useSeo({
+    canonical: productUrl,
+    jsonLd: productDetails
+      ? productJsonLd(productDetails, { currency: merchant && merchant.currency, url: productUrl, storeName })
+      : undefined
+  });
+
+  if (notFound) {
+    return <NotFound location={location} />;
+  }
+
+  const pageTitle = description
+    ? (description.title || description.name) + (storeName ? " | " + storeName : "")
+    : storeName || "";
+  const metaDescription = description
+    ? plainText(description.metaDescription || description.description)
+    : "";
+
   return (
     <Fragment>
       <MetaTags>
-        <title>{productDetails && productDetails.description.title}</title>
-        <meta
-          name="description"
-          content={productDetails && productDetails.description.metaDescription}
-        />
+        <title>{pageTitle}</title>
+        <meta name="description" content={metaDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:type" content="product" />
+        {productUrl && <meta property="og:url" content={productUrl} />}
+        {productDetails && productDetails.image && productDetails.image.imageUrl &&
+          <meta property="og:image" content={productDetails.image.imageUrl} />}
       </MetaTags>
 
       <BreadcrumbsItem to={process.env.PUBLIC_URL + "/"}>{strings["Home"]}</BreadcrumbsItem>
@@ -120,7 +156,8 @@ const mapStateToProps = (state, ownProps) => {
   // const itemId = ownProps.match.params.id;
   return {
     currentLanguageCode: state.multilanguage.currentLanguageCode,
-    defaultStore: state.merchantData.defaultStore
+    defaultStore: state.merchantData.defaultStore,
+    merchant: state.merchantData.merchant
   };
 };
 const mapDispatchToProps = dispatch => {

@@ -6,13 +6,18 @@ import { BreadcrumbsItem } from "react-breadcrumbs-dynamic";
 import Layout from "../../layouts/Layout";
 import Breadcrumb from "../../wrappers/breadcrumb/Breadcrumb";
 import { multilanguage } from "redux-multilanguage";
-const NotFound = ({ location, strings }) => {
+import { connect } from "react-redux";
+import { useSeo } from "../../util/seo";
+const NotFound = ({ location, strings, merchant }) => {
   // const { pathname } = location;
+  // A client-rendered app cannot send a 404 status; noindex keeps the page
+  // out of search results instead.
+  useSeo({ robots: "noindex" });
 
   return (
     <Fragment>
       <MetaTags>
-        <title>Importa | {strings["Page Not Found"]}</title>
+        <title>{strings["Page Not Found"]}{merchant && merchant.name ? " | " + merchant.name : ""}</title>
         {/* <meta
           name="description"
           content="404 page of flone react minimalist eCommerce template."
@@ -67,4 +72,8 @@ NotFound.propTypes = {
   location: PropTypes.object
 };
 
-export default multilanguage(NotFound);
+const mapStateToProps = state => ({
+  merchant: state.merchantData.merchant
+});
+
+export default connect(mapStateToProps)(multilanguage(NotFound));
