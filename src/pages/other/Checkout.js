@@ -27,7 +27,7 @@ import env from '../../util/env';
 
 
 import { newIdempotencyKey, submitCheckout, isOutcomeUnknown, PAYMENT_PENDING } from '../../util/checkout';
-import { isPaymentActionRequired } from '../../util/stripePayment';
+import { actionRequiredDetails, isPaymentActionRequired } from '../../util/stripePayment';
 import StripePaymentForm from '../../components/payment/StripePaymentForm';
 
 // Only a publishable key (pk_...) reaches the browser; see util/env.js.
@@ -250,6 +250,10 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
   // the button again replays the same attempt instead of placing a second
   // order, and is discarded once the backend gives a definite answer.
   const attemptKey = useRef(null);
+  // Set once checkout answered 409 payment_action_required: the order is kept
+  // open and a guest's new account was already created by that attempt, so
+  // the retry (same Idempotency-Key) must not ask to register it again.
+  const awaitingAction = useRef(false);
   useEffect(() => {
     getSummaryOrder()
     // getNuviePayment()
@@ -492,7 +496,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
   }
   // Card path: confirm the PaymentIntent in the browser first (3-D Secure runs
   // there when the issuer asks), then check out with the PaymentIntent id.
-  const onCardOrder = async (data, confirm) => {
+  const onCardOrder = async (data, confirm, completeAction) => {
     if (!cartID) {
       history.push("/");
       return;
@@ -506,21 +510,33 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       addToast(error.message, { appearance: "error", autoDismiss: true });
       return;
     }
-    onPayment(data, paymentIntentId, confirm)
+    onPayment(data, paymentIntentId, completeAction)
   }
   // PaymentIntent for this cart and the selected shipping quote (server-side total).
   const paymentInitAction = () => {
     const base = (userData ? constant.ACTION.AUTH : '') + constant.ACTION.CART + cartID + '/payment/init';
     return selectedOptions ? base + '?quote=' + selectedOptions : base;
   }
+  // Addresses a guest's tax is computed on, as the checkout body sends them;
+  // null for a signed-in customer (the profile is used).
+  const paymentAddress = () => {
+    if (userData) {
+      return null;
+    }
+    const customer = { billing: { country: watch('country'), zone: watch('stateProvince') } };
+    if (isShipping) {
+      customer.delivery = { country: watch('shipCountry'), zone: watch('shipStateProvince') };
+    }
+    return customer;
+  }
   const orderTotal = () => {
     const total = shippingQuote.find(q => q.module === 'total' || q.code === 'order.total.total') || shippingQuote[shippingQuote.length - 1];
     return total ? total.value : cartItems.total;
   }
   // paymentToken is the Stripe PaymentIntent id, or null for a money order.
-  // confirmCard completes the PaymentIntent again when checkout answers that
-  // the customer still has to act on it (3-D Secure).
-  const onPayment = async (data, paymentToken, confirmCard) => {
+  // completeAction(clientSecret, status) finishes the PaymentIntent when
+  // checkout answers that the customer still has to act on it (3-D Secure).
+  const onPayment = async (data, paymentToken, completeAction) => {
     let action;
     if (!cartID) {
       history.push("/");
@@ -598,7 +614,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
           }
         }
       }
-      if (isAccount) {
+      if (isAccount && !awaitingAction.current) {
         customer['password'] = data.password;
         customer['repeatPassword'] = data.repeatPassword;
       }
@@ -635,17 +651,25 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       setLoader(false)
     } catch (error) {
       const status = error && error.response ? error.response.status : 0;
-      if (isPaymentActionRequired(error) && confirmCard) {
-        // 409: not paid yet, the order is kept open. Finish the challenge and
-        // submit again with the same Idempotency-Key, which resumes that order.
-        try {
-          await confirmCard();
-        } catch (confirmError) {
-          setLoader(false)
-          addToast(confirmError.message, { appearance: "error", autoDismiss: true });
-          return;
+      if (isPaymentActionRequired(error)) {
+        // 409: not paid yet, the order is kept open. Finish the challenge with
+        // the client secret from the answer and submit again with the same
+        // Idempotency-Key (kept), which resumes that order.
+        awaitingAction.current = true;
+        const details = actionRequiredDetails(error);
+        if (completeAction) {
+          try {
+            await completeAction(details.clientSecret, details.status);
+          } catch (actionError) {
+            setLoader(false)
+            addToast(actionError.message, { appearance: "error", autoDismiss: true });
+            return;
+          }
+          return onPayment(data, paymentToken, null);
         }
-        return onPayment(data, paymentToken, null);
+        setLoader(false)
+        addToast(details.message || "The payment is not complete yet. Please place the order again.", { appearance: "error", autoDismiss: true });
+        return;
       }
       if (isOutcomeUnknown(status)) {
         // Keep attemptKey: submitting again replays this attempt.
@@ -1215,8 +1239,9 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
                         env.APP_PAYMENT_TYPE === 'STRIPE' &&
                         <div className="payment-method mt-25">
                           <StripePaymentForm stripePromise={stripePromise} initAction={paymentInitAction()}
-                            amount={shippingQuote.length > 0 ? orderTotal() : null} locale={currentLanguageCode}>
-                            {(confirm) => (
+                            amount={shippingQuote.length > 0 ? orderTotal() : null} locale={currentLanguageCode}
+                            customer={paymentAddress()} waitForAddress={!userData && !watch('country')}>
+                            {(confirm, completeAction) => (
                               <>
                                   <div className="icon-container">
                                     <i className="fa fa-cc-visa" style={{ color: 'navy' }}></i>
@@ -1243,7 +1268,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
                                       }
                                     
                                     </div>
-                                    <button type="button" onClick={handleSubmit((d) => onCardOrder(d, confirm))} className="btn-hover">{strings["Place your order"]}</button>
+                                    <button type="button" onClick={handleSubmit((d) => onCardOrder(d, confirm, completeAction))} className="btn-hover">{strings["Place your order"]}</button>
                                   </div>
                               </>
                             )}
