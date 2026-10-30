@@ -17,13 +17,15 @@ import { setLoader } from "../../redux/actions/loaderActions";
 import { setProductID } from "../../redux/actions/productActions";
 import { multilanguage } from "redux-multilanguage";
 import ReactPaginate from 'react-paginate';
+import { formatOrderAmount, orderGrandTotal } from "../../util/money";
 const RecentOrder = ({
   strings,
   location,
   setLoader,
   setProductID,
   merchant,
-  isLoading
+  isLoading,
+  currentLanguageCode
 }) => {
   const pageLimit = 5;
   const history = useHistory();
@@ -140,7 +142,7 @@ const RecentOrder = ({
                               <thead className="footer-table-row">
                                 <tr>
                                   <th>{strings["Ordered on"]} {order.datePurchased}</th>
-                                  <th>{strings["Order Total"]} :  US${order.totals[order.totals.length - 1].value}</th>
+                                  <th>{strings["Order Total"]} :  {formatOrderAmount(orderGrandTotal(order), order.currency, currentLanguageCode)}</th>
                                 </tr>
                               </thead>
                             </table>
@@ -194,7 +196,8 @@ RecentOrder.propTypes = {
 const mapStateToProps = state => {
   return {
     merchant: state.merchantData.merchant,
-    isLoading: state.loading.isLoading
+    isLoading: state.loading.isLoading,
+    currentLanguageCode: state.multilanguage.currentLanguageCode
   };
 };
 
