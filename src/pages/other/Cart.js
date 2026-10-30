@@ -134,6 +134,14 @@ const Cart = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartCount])
 
+  // Removing the last item clears the cart id in the store. Clear this page's copy too,
+  // otherwise it keeps rendering the removed item.
+  useEffect(() => {
+    if (!cartID) {
+      setCartItems({})
+    }
+  }, [cartID])
+
   const getCartData = async () => {
     setLoader(true)
     let action = constant.ACTION.CART + cartID + '?store=' + defaultStore;

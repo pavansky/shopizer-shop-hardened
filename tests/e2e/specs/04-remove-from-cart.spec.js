@@ -30,11 +30,5 @@ test('the cart page shows the cart as empty after the last item is removed', asy
   const removed = await removeOnlyItem(page);
   expect(removed.ok()).toBeTruthy();
 
-  // Known defect: Cart.js renders its own copy of the cart and only refetches it when the
-  // header count changes, which it does not do here, so the page keeps showing the item.
-  // The mark is set only now, so a failure in the steps above still fails this test;
-  // only the UI assertion below is an expected failure. Remove this line with the
-  // Cart.js fix.
-  test.fail(true, 'cart page does not refresh after the last item is removed');
   await expect(page.getByText('No items found in cart')).toBeVisible();
 });
