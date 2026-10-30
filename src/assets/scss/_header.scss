@@ -1343,8 +1343,10 @@
       background: none;
     }
 
+    // Opens on hover for the mouse, and through the toggle button
+    // (aria-expanded, class "open") for the keyboard.
     &:hover,
-    &:focus-within {
+    &.open {
 
       &>a,
       span {
