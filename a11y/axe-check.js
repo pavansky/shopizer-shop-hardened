@@ -11,6 +11,11 @@
  *             add A11Y_RECORD=1 to rewrite fixtures.json from that backend
  *             (seed it first with scripts/demo-checkout.sh).
  *
+ * The run fails when a page shows no real content (each page must render the
+ * element listed in EXPECT) or, in replay mode, when the app calls an API URL
+ * that has no fixture, so a passing run always means the pages were checked
+ * with the catalogue in them rather than as empty or error shells.
+ *
  * Usage: npm run build && npm run a11y
  * Env:   A11Y_PORT (5055), A11Y_CATEGORY (furniture), A11Y_PRODUCT (oak-bench),
  *        A11Y_REPORT (path of a JSON report, optional),
@@ -38,6 +43,18 @@ const STEP_MS = Number(process.env.A11Y_STEP_TIMEOUT_MS || 60000);
 const SETTLE_MS = Number(process.env.A11Y_SETTLE_MS || 15000);
 const TOTAL_MS = Number(process.env.A11Y_TIMEOUT_MS || 600000);
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+
+// What each page must show before axe runs: a selector and the minimum number
+// of matches. These are the parts that only render when the API answered.
+const EXPECT = {
+  // The demo store has no featured products, so the home page proves its API
+  // data through the category menu.
+  home: [['main#main-content', 1], [`a[href="/category/${CATEGORY}"]`, 1]],
+  category: [['main .product-wrap', 1]],
+  product: [['main .product-details-content h2', 1], ['script[type="application/ld+json"][data-seo]', 1]],
+  cart: [['main .cart-table-content tbody tr', 1]],
+  checkout: [['main .billing-info-wrap input', 8]],
+};
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'application/javascript', '.css': 'text/css',
@@ -123,6 +140,16 @@ function serveStatic(req, res) {
   return fs.createReadStream(file).pipe(res);
 }
 
+// Returns the expectations a page does not meet, as readable strings.
+async function missingContent(page, name) {
+  const problems = [];
+  for (const [selector, min] of EXPECT[name] || []) {
+    const count = await page.locator(selector).count();
+    if (count < min) problems.push(`expected at least ${min} of ${selector}, found ${count}`);
+  }
+  return problems;
+}
+
 async function addToCart(page) {
   const button = page.locator('.pro-details-cart button:not([disabled])').first();
   if (await button.count()) {
@@ -192,6 +219,11 @@ async function main() {
     console.log(`\nchecking ${name} ${url}`);
     await page.goto(ORIGIN + url, { waitUntil: 'load' });
     await settle(page);
+    const empty = await missingContent(page, name);
+    if (empty.length) {
+      failures += empty.length;
+      empty.forEach((p) => console.error(`  ${name}: ${p}`));
+    }
     const result = await withTimeout(new AxeBuilder({ page }).withTags(TAGS).analyze(), STEP_MS, `axe on ${url}`);
     const violations = result.violations.map((v) => ({
       id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length,
@@ -199,7 +231,7 @@ async function main() {
     }));
     const blocking = violations.filter((v) => FAIL_ON.includes(v.impact));
     failures += blocking.length;
-    report.push({ page: name, url, title: await page.title(), violations });
+    report.push({ page: name, url, title: await page.title(), missingContent: empty, violations });
     console.log(`\n${name} ${url}  title="${await page.title()}"  ${violations.length} violation(s), ${blocking.length} serious/critical`);
     for (const v of violations) {
       console.log(`  [${v.impact}] ${v.id} (${v.nodes} node(s)): ${v.help}`);
@@ -216,16 +248,17 @@ async function main() {
     console.log(`\nRecorded ${Object.keys(fixtures.responses).length} API responses to ${path.relative(ROOT, FIXTURES)}`);
   }
   if (missing.size) {
-    console.log('\nAPI calls without a fixture (answered 404):');
-    missing.forEach((m) => console.log('  ' + m));
+    console.error('\nAPI calls without a fixture (answered 404); re-record with A11Y_BACKEND=<url> A11Y_RECORD=1:');
+    missing.forEach((m) => console.error('  ' + m));
+    failures += missing.size;
   }
   if (process.env.A11Y_REPORT) fs.writeFileSync(process.env.A11Y_REPORT, JSON.stringify(report, null, 2));
 
   if (failures) {
-    console.error(`\n${failures} serious/critical accessibility violation(s).`);
+    console.error(`\n${failures} problem(s): serious/critical violations, pages without content or missing fixtures.`);
     process.exit(1);
   }
-  console.log('\nNo serious or critical accessibility violations.');
+  console.log('\nAll pages rendered their content, with no serious or critical accessibility violations.');
 }
 
 // A hung browser must fail the check, not stall CI until the job limit.

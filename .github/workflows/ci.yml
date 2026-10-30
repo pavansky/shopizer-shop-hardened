@@ -27,7 +27,8 @@ jobs:
   # axe-core in Chromium on the home, category, product, cart and checkout
   # pages of the production build. API calls are answered from
   # a11y/fixtures.json, so no backend is needed. Fails on serious or
-  # critical WCAG 2.x A/AA violations.
+  # critical WCAG 2.x A/AA violations, on pages that render no catalogue
+  # content, and on API calls that have no fixture.
   accessibility:
     runs-on: ubuntu-latest
     steps:
