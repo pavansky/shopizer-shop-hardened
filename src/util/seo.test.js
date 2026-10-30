@@ -66,3 +66,21 @@ describe('helpers', () => {
     expect(text.endsWith('…')).toBe(true);
   });
 });
+
+describe('productJsonLd image', () => {
+  it('falls back to the main image when the gallery is empty', () => {
+    const ld = productJsonLd({ ...product, images: [], image: { imageUrl: 'https://cdn.example/main.jpg' } }, { currency: 'CAD' });
+    expect(ld.image).toEqual(['https://cdn.example/main.jpg']);
+  });
+
+  it('leaves image out when the product has none', () => {
+    const ld = productJsonLd({ ...product, images: [], image: null }, { currency: 'CAD' });
+    expect(ld.image).toBeUndefined();
+  });
+});
+
+describe('canonicalUrl without a configured public URL', () => {
+  it('uses the page origin', () => {
+    expect(canonicalUrl('/category/tables')).toBe(window.location.origin + '/category/tables');
+  });
+});

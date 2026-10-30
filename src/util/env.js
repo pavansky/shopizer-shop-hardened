@@ -21,6 +21,7 @@ const buildTime = {
   APP_PRODUCT_GRID_LIMIT: process.env.REACT_APP_PRODUCT_GRID_LIMIT,
   APP_MAP_API_KEY: process.env.REACT_APP_MAP_API_KEY,
   APP_THEME_COLOR: process.env.REACT_APP_THEME_COLOR,
+  APP_PUBLIC_URL: process.env.REACT_APP_PUBLIC_URL,
 };
 
 const defaults = {
@@ -87,6 +88,10 @@ const env = {
   APP_PRODUCT_GRID_LIMIT: read('APP_PRODUCT_GRID_LIMIT') || defaults.APP_PRODUCT_GRID_LIMIT,
   APP_MAP_API_KEY: read('APP_MAP_API_KEY') || defaults.APP_MAP_API_KEY,
   APP_THEME_COLOR: read('APP_THEME_COLOR') || defaults.APP_THEME_COLOR,
+  // Public storefront origin ("https://shop.example.com") for canonical URLs, so
+  // they match the backend sitemap (shopizer.storefront.base-url). Empty means
+  // the origin the page was loaded from.
+  APP_PUBLIC_URL: stripSlash(read('APP_PUBLIC_URL') || ''),
 };
 
 export default env;

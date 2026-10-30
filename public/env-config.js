@@ -9,4 +9,5 @@ window._env_ = {
   APP_PRODUCT_GRID_LIMIT: "",
   APP_MAP_API_KEY: "",
   APP_THEME_COLOR: "",
+  APP_PUBLIC_URL: "",
 }

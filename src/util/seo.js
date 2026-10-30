@@ -2,12 +2,15 @@
 // rel=canonical, robots and schema.org JSON-LD. Title and description stay
 // with react-meta-tags, which the pages already use.
 import { useEffect } from 'react';
+import env from './env';
 
 const MANAGED = 'data-seo';
 
 // Absolute storefront URL for a path ("/product/oak-bench"), without query or hash.
+// The configured public URL wins over the current origin, so a page reached on a
+// second host (apex, preview) still names the same canonical URL as the sitemap.
 export function canonicalUrl(path, origin) {
-  const base = origin || (typeof window !== 'undefined' ? window.location.origin : '');
+  const base = origin || env.APP_PUBLIC_URL || (typeof window !== 'undefined' ? window.location.origin : '');
   return base.replace(/\/+$/, '') + '/' + String(path || '').replace(/^\/+/, '');
 }
 
@@ -55,7 +58,9 @@ export function productJsonLd(product, { currency, url, storeName } = {}) {
   if (!product || !product.description) return null;
   const d = product.description;
   const price = product.discounted ? parsePrice(product.finalPrice) : (product.price != null ? Number(product.price) : parsePrice(product.finalPrice));
-  const images = (product.images || []).map((i) => i && i.imageUrl).filter(Boolean);
+  let images = (product.images || []).map((i) => i && i.imageUrl).filter(Boolean);
+  // Some products carry only the main image; rich results need at least one.
+  if (!images.length && product.image && product.image.imageUrl) images = [product.image.imageUrl];
   const data = {
     '@context': 'https://schema.org',
     '@type': 'Product',
