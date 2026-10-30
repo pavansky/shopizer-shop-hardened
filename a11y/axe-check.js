@@ -14,7 +14,8 @@
  * Usage: npm run build && npm run a11y
  * Env:   A11Y_PORT (5055), A11Y_CATEGORY (furniture), A11Y_PRODUCT (oak-bench),
  *        A11Y_REPORT (path of a JSON report, optional),
- *        A11Y_CHROME (a Chromium binary to use instead of Playwright's download).
+ *        A11Y_CHROME (a Chromium binary to use instead of Playwright's download),
+ *        A11Y_STEP_TIMEOUT_MS (60000), A11Y_SETTLE_MS (15000), A11Y_TIMEOUT_MS (600000).
  */
 'use strict';
 
@@ -33,6 +34,9 @@ const RECORD = BACKEND && process.env.A11Y_RECORD === '1';
 const CATEGORY = process.env.A11Y_CATEGORY || 'furniture';
 const PRODUCT = process.env.A11Y_PRODUCT || 'oak-bench';
 const FAIL_ON = ['serious', 'critical'];
+const STEP_MS = Number(process.env.A11Y_STEP_TIMEOUT_MS || 60000);
+const SETTLE_MS = Number(process.env.A11Y_SETTLE_MS || 15000);
+const TOTAL_MS = Number(process.env.A11Y_TIMEOUT_MS || 600000);
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 const MIME = {
@@ -123,11 +127,18 @@ async function addToCart(page) {
   const button = page.locator('.pro-details-cart button:not([disabled])').first();
   if (await button.count()) {
     await button.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await settle(page);
   } else {
     console.log('  (product cannot be added to the cart; cart and checkout are checked empty)');
   }
+}
+
+// Waits for the API calls a view makes on load. networkidle is a best effort:
+// a page that keeps a request open must not stall the check, so after
+// SETTLE_MS it carries on with what has rendered.
+async function settle(page) {
+  await page.waitForLoadState('networkidle', { timeout: SETTLE_MS }).catch(() => {});
+  await page.waitForTimeout(1000);
 }
 
 function startServer() {
@@ -137,6 +148,14 @@ function startServer() {
     return serveStatic(req, res);
   });
   return new Promise((resolve) => server.listen(PORT, () => resolve(server)));
+}
+
+function withTimeout(promise, ms, what) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${what} did not finish within ${ms} ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 async function main() {
@@ -168,9 +187,12 @@ async function main() {
   let failures = 0;
   for (const [name, url, after] of pages) {
     const page = await context.newPage();
-    await page.goto(ORIGIN + url, { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
-    const result = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+    page.setDefaultTimeout(STEP_MS);
+    page.on('crash', () => console.error(`  page crashed on ${url}`));
+    console.log(`\nchecking ${name} ${url}`);
+    await page.goto(ORIGIN + url, { waitUntil: 'load' });
+    await settle(page);
+    const result = await withTimeout(new AxeBuilder({ page }).withTags(TAGS).analyze(), STEP_MS, `axe on ${url}`);
     const violations = result.violations.map((v) => ({
       id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length,
       targets: v.nodes.slice(0, 5).map((n) => n.target.join(' ')),
@@ -205,6 +227,12 @@ async function main() {
   }
   console.log('\nNo serious or critical accessibility violations.');
 }
+
+// A hung browser must fail the check, not stall CI until the job limit.
+setTimeout(() => {
+  console.error(`Accessibility check did not finish within ${TOTAL_MS} ms.`);
+  process.exit(2);
+}, TOTAL_MS).unref();
 
 main().catch((e) => {
   console.error(e);
