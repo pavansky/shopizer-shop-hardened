@@ -30,7 +30,9 @@ jobs:
   # critical WCAG 2.x A/AA violations, on pages that render no catalogue
   # content, and on API calls that have no fixture.
   accessibility:
-    runs-on: ubuntu-latest
+    # Playwright 1.40's dependency installer targets Ubuntu 22.04 package names
+    # (libasound2); ubuntu-latest is 24.04.
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
