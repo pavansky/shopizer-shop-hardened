@@ -1,0 +1,11 @@
+{
+  "name": "shop-react-e2e",
+  "private": true,
+  "description": "Browser tests against a running stack. Kept apart from the storefront build: run them from this folder.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.48.2"
+  }
+}
