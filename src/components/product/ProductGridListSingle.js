@@ -45,7 +45,7 @@ const ProductGridListSingle = ({
           className={`product-wrap ${spaceBottomClass ? spaceBottomClass : ""}`}
         >
           <div className="product-img">
-            <Link to={process.env.PUBLIC_URL + "/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)}>
+            <Link to={process.env.PUBLIC_URL + "/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)} aria-label={product.image ? undefined : product.description.name}>
               {
                 product.image && <img className="default-img" src={defaultImage(product)} alt={product.description.name} />
               }
@@ -125,7 +125,7 @@ const ProductGridListSingle = ({
             <div className="col-xl-4 col-md-5 col-sm-6">
               <div className="product-list-image-wrap">
                 <div className="product-img">
-                  <Link to={"/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)}>
+                  <Link to={"/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)} aria-label={product.image ? undefined : product.description.name}>
                     {
                       product.image && <img className="default-img img-fluid" src={product.image.imageUrl} alt={product.description.name} />
                     }

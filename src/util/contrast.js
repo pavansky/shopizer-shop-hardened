@@ -1,12 +1,15 @@
 // WCAG 2.x contrast helpers for the merchant theme colour.
 //
-// The theme colour (APP_THEME_COLOR) is used both as a background behind
-// white text (buttons such as "Place your order") and as a text colour on
-// white. WCAG 1.4.3 asks for 4.5:1 in both cases, which is the same test:
-// contrast between the colour and white. A colour that fails is darkened,
-// keeping its hue, until it passes.
+// The theme colour (APP_THEME_COLOR) is used as a background behind white
+// text (buttons such as "Place your order") and as a text colour on white
+// and on the light grey panels of the cart and checkout totals (#f9f9f9).
+// WCAG 1.4.3 asks for 4.5:1. The colour is checked against #F0F0F0, which is
+// darker than any of those backgrounds, so passing there passes on all of
+// them (and against white). A colour that fails is darkened, keeping its
+// hue, until it passes.
 
 const MIN_CONTRAST = 4.5;
+const LIGHTEST_BACKGROUND = [240, 240, 240];
 
 export function parseHex(color) {
   if (typeof color !== 'string') return null;
@@ -37,21 +40,19 @@ export function contrastRatio(a, b) {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-const WHITE = [255, 255, 255];
-
-// Returns the colour unchanged when it already reaches 4.5:1 against white,
-// otherwise the lightest darker shade of it that does. Unparseable values
+// Returns the colour unchanged when it already reaches 4.5:1 against
+// #F0F0F0, otherwise the lightest darker shade of it that does. Unparseable values
 // (named colours, rgb()) are returned as they are.
 export function accessibleThemeColor(color) {
   const rgb = parseHex(color);
   if (!rgb) return color;
-  if (contrastRatio(rgb, WHITE) >= MIN_CONTRAST) return toHex(rgb);
+  if (contrastRatio(rgb, LIGHTEST_BACKGROUND) >= MIN_CONTRAST) return toHex(rgb);
   let low = 0;
   let high = 1;
   for (let i = 0; i < 20; i++) {
     const mid = (low + high) / 2;
     const shade = rgb.map((v) => v * mid);
-    if (contrastRatio(shade, WHITE) >= MIN_CONTRAST) low = mid; else high = mid;
+    if (contrastRatio(shade, LIGHTEST_BACKGROUND) >= MIN_CONTRAST) low = mid; else high = mid;
   }
   return toHex(rgb.map((v) => Math.floor(v * low)));
 }

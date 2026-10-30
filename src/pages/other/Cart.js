@@ -419,9 +419,9 @@ const Cart = ({
                               <h1 className="promoCode">{cartItems.promoCode}</h1>
                             </div> :
                             <div className="discount-code">
-                              <p>{strings["Enter your coupon code if you have one."]}</p>
+                              <p id="coupon-code-label">{strings["Enter your coupon code if you have one."]}</p>
                               <form onSubmit={codeSubmit(applyPromoCode)}>
-                                <input type="text" name={couponCode.code.name} ref={codeRef(couponCode.code.validate)} />
+                                <input type="text" name={couponCode.code.name} ref={codeRef(couponCode.code.validate)} aria-labelledby="coupon-code-label" />
                                 {codeErr[couponCode.code.name] && <p className="error-msg">{codeErr[couponCode.code.name].message}</p>}
                                 <button className="cart-btn-2" type="submit">
                                   {strings["Apply Coupon"]}

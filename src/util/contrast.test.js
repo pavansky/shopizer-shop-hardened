@@ -1,12 +1,14 @@
 import { accessibleThemeColor, contrastRatio, parseHex } from './contrast';
 
 const WHITE = [255, 255, 255];
+const PANEL = [249, 249, 249]; // cart and checkout totals background
 
 describe('accessibleThemeColor', () => {
   it('darkens the default #D1D1D1 (1.53:1) until white text passes 4.5:1', () => {
     expect(contrastRatio(parseHex('#D1D1D1'), WHITE)).toBeCloseTo(1.53, 2);
     const fixed = accessibleThemeColor('#D1D1D1');
     expect(contrastRatio(parseHex(fixed), WHITE)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(parseHex(fixed), PANEL)).toBeGreaterThanOrEqual(4.5);
     // Grey stays grey.
     const [r, g, b] = parseHex(fixed);
     expect(r).toBe(g);

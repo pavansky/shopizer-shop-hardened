@@ -28,8 +28,9 @@ const MobileLangCurrChange = ({
   return (
     <div className="mobile-menu-middle">
       <div className="lang-curr-style">
-        <span className="title mb-2">Choose Language </span>
+        <span className="title mb-2" id="mobile-language-label">Choose Language </span>
         <select
+          aria-labelledby="mobile-language-label"
           value={currentLanguageCode}
           onChange={e => {
             changeLanguageTrigger(e);
