@@ -11,6 +11,7 @@ const OffcanvasMenu = ({ activeState, getActiveState }) => {
         <button
           className="clickable-mainmenu-close"
           onClick={() => getActiveState(false)}
+          aria-label="Close menu"
         >
           <span className="pe-7s-close"></span>
         </button>

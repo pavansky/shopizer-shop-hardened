@@ -154,5 +154,17 @@
   "Your rating": "Votre note",
   "Message": "Un message",
   "Submit": "Soumettre",
-  "No items found in reviews": "Aucun article trouvé dans les avis"
+  "No items found in reviews": "Aucun article trouvé dans les avis",
+  "Skip to content": "Aller au contenu",
+  "Account": "Compte",
+  "Open menu": "Ouvrir le menu",
+  "Close menu": "Fermer le menu",
+  "Remove": "Retirer",
+  "Decrease quantity": "Diminuer la quantité",
+  "Increase quantity": "Augmenter la quantité",
+  "Quantity": "Quantité",
+  "Language": "Langue",
+  "Add to wishlist": "Ajouter à la liste de souhaits",
+  "Add to compare": "Ajouter au comparateur",
+  "items": "articles"
 }

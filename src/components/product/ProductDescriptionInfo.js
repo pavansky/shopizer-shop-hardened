@@ -271,14 +271,16 @@ const ProductDescriptionInfo = ({
         // ) : (
         <div className="pro-details-quality">
           <div className="cart-plus-minus">
-            <button onClick={() => setQuantityCount(quantityCount > 1 ? quantityCount - 1 : 1)} className="dec qtybutton">-</button>
+            <button onClick={() => setQuantityCount(quantityCount > 1 ? quantityCount - 1 : 1)} className="dec qtybutton" aria-label={strings["Decrease quantity"]}>-</button>
             <input
               className="cart-plus-minus-box"
               type="text"
               value={quantityCount}
+              aria-label={strings["Quantity"]}
+              aria-live="polite"
               readOnly
             />
-            <button onClick={() => setQuantityCount(quantityCount < product.quantity ? quantityCount + 1 : quantityCount)} className="inc qtybutton">+</button>
+            <button onClick={() => setQuantityCount(quantityCount < product.quantity ? quantityCount + 1 : quantityCount)} className="inc qtybutton" aria-label={strings["Increase quantity"]}>+</button>
           </div>
           <div className="pro-details-cart btn-hover">
             {product.available && product.canBePurchased && product.visible && product.quantity > 0 ? (

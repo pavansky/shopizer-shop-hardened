@@ -67,8 +67,24 @@ const IconGroup = ({
       history.push('/')
     }
   }
+  // Opens or closes the dropdown that follows the button, and tells
+  // assistive technology whether it is open.
   const handleClick = e => {
-    e.currentTarget.nextSibling.classList.toggle("active");
+    const open = e.currentTarget.nextSibling.classList.toggle("active");
+    e.currentTarget.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  // Escape closes an open account or cart dropdown and returns focus to its button.
+  const handleKeyDown = e => {
+    if (e.key !== "Escape") return;
+    const wrap = e.currentTarget;
+    const dropdown = wrap.querySelector(".active");
+    if (!dropdown) return;
+    dropdown.classList.remove("active");
+    const button = wrap.querySelector("button[aria-expanded]");
+    if (button) {
+      button.setAttribute("aria-expanded", "false");
+      button.focus();
+    }
   };
   const triggerMobileMenu = () => {
     const offcanvasMobileMenu = document.querySelector(
@@ -173,12 +189,15 @@ const IconGroup = ({
       </div>
       */}
 
-      <div className="same-style account-setting d-none d-lg-block">
+      <div className="same-style account-setting d-none d-lg-block" onKeyDown={handleKeyDown}>
         {
           pathname.url !== '/checkout' &&
           <button
             className="account-setting-active"
             onClick={e => handleClick(e)}
+            aria-label={strings["Account"]}
+            aria-haspopup="true"
+            aria-expanded="false"
           >
             <i className="pe-7s-user-female" />
           </button>
@@ -245,8 +264,14 @@ const IconGroup = ({
       </div> */}
       {
         pathname.url !== '/checkout' &&
-        <div className="same-style cart-wrap d-none d-lg-block">
-          <button className="icon-cart" onClick={e => handleClick(e)}>
+        <div className="same-style cart-wrap d-none d-lg-block" onKeyDown={handleKeyDown}>
+          <button
+            className="icon-cart"
+            onClick={e => handleClick(e)}
+            aria-label={strings["Cart"] + ", " + (cartCount || 0) + " " + strings["items"]}
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
             <i className="pe-7s-shopbag" />
             <span className="count-style">
               {cartCount}
@@ -261,7 +286,11 @@ const IconGroup = ({
         </div>
       }
       <div className="same-style cart-wrap d-block d-lg-none">
-        <Link className="icon-cart" to={process.env.PUBLIC_URL + "/cart"}>
+        <Link
+          className="icon-cart"
+          to={process.env.PUBLIC_URL + "/cart"}
+          aria-label={strings["Cart"] + ", " + (cartCount || 0) + " " + strings["items"]}
+        >
           <i className="pe-7s-shopbag" />
           <span className="count-style">
             {cartCount}
@@ -272,6 +301,7 @@ const IconGroup = ({
         <button
           className="mobile-aside-button"
           onClick={() => triggerMobileMenu()}
+          aria-label={strings["Open menu"]}
         >
           <i className="pe-7s-menu" />
         </button>

@@ -47,7 +47,7 @@ const ProductGridListSingle = ({
           <div className="product-img">
             <Link to={process.env.PUBLIC_URL + "/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)}>
               {
-                product.image && <img className="default-img" src={defaultImage(product)} alt="" />
+                product.image && <img className="default-img" src={defaultImage(product)} alt={product.description.name} />
               }
               {
                 product.images.length > 1 ? <img className="hover-img-A" src={defaultImage(product)} alt="" /> : ''
@@ -127,7 +127,7 @@ const ProductGridListSingle = ({
                 <div className="product-img">
                   <Link to={"/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)}>
                     {
-                      product.image && <img className="default-img img-fluid" src={product.image.imageUrl} alt="" />
+                      product.image && <img className="default-img img-fluid" src={product.image.imageUrl} alt={product.description.name} />
                     }
                     
                     {/*product.images.length > 1 ?

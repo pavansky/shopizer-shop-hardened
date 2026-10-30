@@ -109,7 +109,7 @@ const RecentOrder = ({
                                             style={{ width: 140 }}
                                             className="img-fluid"
                                             src={orderItem.product.image.imageUrl}
-                                            alt=""
+                                            alt={orderItem.productName}
                                           />
                                         </Link>
                                       </td>

@@ -15,7 +15,7 @@ const FooterCopyright = ({ footerLogo, spaceBottomClass, colorClass, merchant })
         {
           merchant.logo != null &&
           <Link to={process.env.PUBLIC_URL + "/"}>
-            <img alt="" src={merchant.logo.path} />
+            <img alt={merchant.name ? merchant.name + " home" : "Home"} src={merchant.logo.path} />
           </Link>
         }
 
