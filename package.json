@@ -57,6 +57,7 @@
 		"start": "react-scripts start",
 		"build": "react-scripts build",
 		"test": "react-scripts test",
+		"a11y": "node a11y/axe-check.js",
 		"eject": "react-scripts eject"
 	},
 	"eslintConfig": {
@@ -77,6 +78,8 @@
 		]
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "4.8.5",
+		"playwright-core": "1.40.1",
 		"redux-devtools-extension": "^2.13.8",
 		"sass": "^1.29.0"
 	}

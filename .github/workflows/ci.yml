@@ -23,3 +23,30 @@ jobs:
         env:
           CI: true
           REACT_APP_API_URL: http://localhost:8080/api
+
+  # axe-core in Chromium on the home, category, product, cart and checkout
+  # pages of the production build. API calls are answered from
+  # a11y/fixtures.json, so no backend is needed. Fails on serious or
+  # critical WCAG 2.x A/AA violations.
+  accessibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          CI: true
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run a11y
+        env:
+          A11Y_REPORT: a11y-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a11y-report
+          path: a11y-report.json
+          if-no-files-found: ignore
