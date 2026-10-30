@@ -39,9 +39,9 @@ const ProductGridSingleTwo = ({
         <div
           className={`product-wrap-2 ${spaceBottomClass ? spaceBottomClass : ""} ${colorClass ? colorClass : ""} `}>
           <div className="product-img">
-            <Link to={process.env.PUBLIC_URL + "/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)}>
+            <Link to={process.env.PUBLIC_URL + "/product/" + product.description.friendlyUrl} onClick={() => onClickProductDetails(product.id)} aria-label={product.images && product.images.length > 0 ? undefined : product.description.name}>
               {product.images && product.images.length > 0 &&
-                <img src={product.images[0].imageUrl} alt="" />}
+                <img src={product.images[0].imageUrl} alt={product.description.name} />}
               
 
             </Link>

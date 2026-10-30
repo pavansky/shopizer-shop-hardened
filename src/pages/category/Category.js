@@ -19,8 +19,10 @@ import { multilanguage } from "redux-multilanguage";
 import { setCategoryID } from "../../redux/actions/productActions";
 import ReactPaginate from 'react-paginate';
 import env from '../../util/env';
+import NotFound from '../other/NotFound';
+import { canonicalUrl, plainText, useSeo } from '../../util/seo';
 
-const Category = ({ setCategoryID, isLoading, strings, location, match, defaultStore, currentLanguageCode, categoryID, setLoader, }) => {
+const Category = ({ setCategoryID, isLoading, strings, location, match, defaultStore, currentLanguageCode, categoryID, setLoader, merchant }) => {
     const [layout, setLayout] = useState('grid three-column');
     const history = useHistory();
     // const [sortType, setSortType] = useState('');
@@ -40,6 +42,7 @@ const Category = ({ setCategoryID, isLoading, strings, location, match, defaultS
     const [size, setSize] = useState([]);
     const [selectedOption, setSelectedOption] = useState([]);
     const [selectedManufature, setSelectedManufature] = useState([]);
+    const [notFound, setNotFound] = useState(false);
     // const [sortedProducts, setSortedProducts] = useState([]);
 
     const { pathname } = location;
@@ -92,6 +95,7 @@ const Category = ({ setCategoryID, isLoading, strings, location, match, defaultS
     const slug = match && match.params ? match.params.id : undefined;
     useEffect(() => {
         if (!slug) return;
+        setNotFound(false)
         const resolveSlug = async () => {
             try {
                 let response = await WebService.get(constant.ACTION.CATEGORY + encodeURIComponent(slug) + '?store=' + defaultStore + '&lang=' + currentLanguageCode);
@@ -99,6 +103,10 @@ const Category = ({ setCategoryID, isLoading, strings, location, match, defaultS
                     setCategoryID(response.id)
                 }
             } catch (error) {
+                // An unknown category slug renders the 404 page.
+                if (error && error.response && error.response.status === 404) {
+                    setNotFound(true)
+                }
             }
         }
         resolveSlug()
@@ -184,11 +192,27 @@ const Category = ({ setCategoryID, isLoading, strings, location, match, defaultS
         } catch (error) {
         }
     }
+    const categoryDescription = productDetails && productDetails.description;
+    const storeName = merchant && merchant.name;
+    useSeo({
+        canonical: categoryDescription && categoryDescription.friendlyUrl
+            ? canonicalUrl('/category/' + categoryDescription.friendlyUrl)
+            : undefined
+    });
+
+    if (notFound) {
+        return <NotFound location={location} />;
+    }
+
+    const pageTitle = categoryDescription
+        ? (categoryDescription.title || categoryDescription.name) + (storeName ? ' | ' + storeName : '')
+        : storeName || '';
+
     return (
         <Fragment>
             <MetaTags>
-                <title>{productDetails && productDetails.description.title}</title>
-                <meta name="description" content={productDetails && productDetails.description.metaDescription} />
+                <title>{pageTitle}</title>
+                <meta name="description" content={categoryDescription ? plainText(categoryDescription.metaDescription || categoryDescription.description) : ''} />
             </MetaTags>
 
             <BreadcrumbsItem to={process.env.PUBLIC_URL + '/'}>{strings["Home"]}</BreadcrumbsItem>
@@ -269,7 +293,8 @@ const mapStateToProps = state => {
         currentLanguageCode: state.multilanguage.currentLanguageCode,
         defaultStore: state.merchantData.defaultStore,
         categoryID: state.productData.categoryid,
-        isLoading: state.loading.isLoading
+        isLoading: state.loading.isLoading,
+        merchant: state.merchantData.merchant
 
     }
 }

@@ -21,7 +21,7 @@ const MenuCart = ({ cartData, deleteFromCart, defaultStore, strings }) => {
                 <li className="single-shopping-cart" key={key}>
                   <div className="shopping-cart-img">
                     <Link to={"/product/" + ((single.description && single.description.friendlyUrl) || single.sku)}>
-                      <img alt="" src={defaultImage(single)} className="img-fluid" />
+                      <img alt={single.description.name} src={defaultImage(single)} className="img-fluid" />
                     </Link>
                   </div>
                   <div className="shopping-cart-title">
@@ -45,7 +45,7 @@ const MenuCart = ({ cartData, deleteFromCart, defaultStore, strings }) => {
                       )} */}
                   </div>
                   <div className="shopping-cart-delete">
-                    <button onClick={() => deleteFromCart(cartData.code, single, defaultStore, addToast)}>
+                    <button onClick={() => deleteFromCart(cartData.code, single, defaultStore, addToast)} aria-label={strings["Remove"] + " " + single.description.name}>
                       <i className="fa fa-times-circle" />
                     </button>
                   </div>

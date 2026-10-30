@@ -16,6 +16,7 @@ import { multilanguage } from "redux-multilanguage";
 import { setLoader } from "../../redux/actions/loaderActions";
 import { setProductID } from "../../redux/actions/productActions";
 import { useReactToPrint } from 'react-to-print';
+import { formatOrderAmount } from "../../util/money";
 const OrderDetails = ({
     location,
     orderID,
@@ -23,7 +24,8 @@ const OrderDetails = ({
     setLoader,
     setProductID,
     merchant,
-    isLoading
+    isLoading,
+    currentLanguageCode
 }) => {
     // const { addToast } = useToasts();
     const { pathname } = location;
@@ -112,7 +114,7 @@ const OrderDetails = ({
                                                             <tr key={key} className="customTrRow">
                                                                 <td className="product-thumbnail">
                                                                     <Link onClick={() => onClickItem(orderItem.product)} to={"/product/" + orderItem.product.description.friendlyUrl}>
-                                                                        <img className="img-fluid" src={orderItem.product.image.imageUrl} alt="" />
+                                                                        <img className="img-fluid" src={orderItem.product.image.imageUrl} alt={orderItem.productName} />
                                                                     </Link>
                                                                 </td>
 
@@ -179,7 +181,7 @@ const OrderDetails = ({
                                                         <h4 key={i} className="amount_type">
                                                             <span className="amount_module">{value.module}</span>
                                                             <span className="amount">
-                                                                US${value.value}
+                                                                {formatOrderAmount(value, orderDetails.currency, currentLanguageCode)}
                                                             </span>
                                                         </h4>
                                                     )
@@ -224,7 +226,8 @@ const mapStateToProps = (state, ownProps) => {
     return {
         orderID: order_id,
         merchant: state.merchantData.merchant,
-        isLoading: state.loading.isLoading
+        isLoading: state.loading.isLoading,
+        currentLanguageCode: state.multilanguage.currentLanguageCode
     };
 };
 

@@ -85,15 +85,15 @@ const ProductImageGallery = ({ product }) => {
                       group="any"
                       src={single.imageUrl}
                     >
-                      <button>
-                        <i className="pe-7s-expand1"></i>
+                      <button aria-label="Enlarge image">
+                        <i className="pe-7s-expand1" aria-hidden="true"></i>
                       </button>
                     </LightgalleryItem>
                     <div className="single-image">
                       <img
                         src={currentImage}
                         className="img-fluid"
-                        alt=""
+                        alt={product.description ? product.description.name : ""}
                       />
                     </div>
                   </div>

@@ -34,6 +34,7 @@ const ShopTopAction = ({
             getLayout("grid two-column");
             setActiveLayout(e);
           }}
+          aria-label="Two-column grid"
         >
           <i className="fa fa-th-large" />
         </button>
@@ -42,6 +43,7 @@ const ShopTopAction = ({
             getLayout("grid three-column");
             setActiveLayout(e);
           }}
+          aria-label="Three-column grid"
         >
           <i className="fa fa-th" />
         </button>
@@ -50,6 +52,7 @@ const ShopTopAction = ({
             getLayout("list");
             setActiveLayout(e);
           }}
+          aria-label="List"
         >
           <i className="fa fa-list-ul" />
         </button>

@@ -253,7 +253,7 @@ const Cart = ({
                               <tr key={key}>
                                 <td className="product-thumbnail">
                                   <Link to={"/product/" + cartItem.description.friendlyUrl} >
-                                    <img className="img-fluid" src={defaultImage(cartItem)} alt="" />
+                                    <img className="img-fluid" src={defaultImage(cartItem)} alt={cartItem.description.name} />
                                   </Link>
                                 </td>
 
@@ -285,9 +285,9 @@ const Cart = ({
                                     {/* <button className="dec qtybutton" onClick={() => decreaseQuantity(cartItems, key, cartItem, addToast, cartItems.code, cartItem.quantity - 1, defaultStore)} > - </button>
                                     <input className="cart-plus-minus-box" onChange={() => getValue()} type="text" value={cartItem.quantity} />
                                     <button className="inc qtybutton" onClick={() => increaseQuantity(cartItem, cartID, cartItem.quantity + 1, addToast)}>+</button> */}
-                                    <button className="dec qtybutton" onClick={() => decreaseQuantity(cartItem, addToast, cartItems.code, cartItem.quantity - 1, defaultStore)} > - </button>
-                                    <input className="cart-plus-minus-box" type="text" value={cartItem.quantity} readOnly />
-                                    <button className="inc qtybutton" onClick={() => increaseQuantity(cartItem, addToast, cartItems.code, cartItem.quantity + 1, defaultStore)}>+</button>
+                                    <button className="dec qtybutton" aria-label={strings["Decrease quantity"]} onClick={() => decreaseQuantity(cartItem, addToast, cartItems.code, cartItem.quantity - 1, defaultStore)} > - </button>
+                                    <input className="cart-plus-minus-box" type="text" value={cartItem.quantity} aria-label={strings["Quantity"]} readOnly />
+                                    <button className="inc qtybutton" aria-label={strings["Increase quantity"]} onClick={() => increaseQuantity(cartItem, addToast, cartItems.code, cartItem.quantity + 1, defaultStore)}>+</button>
 
                                   </div>
                                 </td>
@@ -298,7 +298,7 @@ const Cart = ({
                                 </td>
 
                                 <td className="product-remove">
-                                  <button onClick={() => deleteFromCart(cartItems.code, cartItem, defaultStore, addToast)}> <i className="fa fa-times"></i> </button>
+                                  <button aria-label={strings["Remove"]} onClick={() => deleteFromCart(cartItems.code, cartItem, defaultStore, addToast)}> <i className="fa fa-times" aria-hidden="true"></i> </button>
                                 </td>
                               </tr>
                             );
@@ -419,9 +419,9 @@ const Cart = ({
                               <h1 className="promoCode">{cartItems.promoCode}</h1>
                             </div> :
                             <div className="discount-code">
-                              <p>{strings["Enter your coupon code if you have one."]}</p>
+                              <p id="coupon-code-label">{strings["Enter your coupon code if you have one."]}</p>
                               <form onSubmit={codeSubmit(applyPromoCode)}>
-                                <input type="text" name={couponCode.code.name} ref={codeRef(couponCode.code.validate)} />
+                                <input type="text" name={couponCode.code.name} ref={codeRef(couponCode.code.validate)} aria-labelledby="coupon-code-label" />
                                 {codeErr[couponCode.code.name] && <p className="error-msg">{codeErr[couponCode.code.name].message}</p>}
                                 <button className="cart-btn-2" type="submit">
                                   {strings["Apply Coupon"]}

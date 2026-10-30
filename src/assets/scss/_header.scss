@@ -1335,7 +1335,18 @@
       color: #555252;
     }
 
-    &:hover {
+    // The toggle is a button so the list also opens from the keyboard.
+    .lang-toggle {
+      padding: 0;
+
+      border: none;
+      background: none;
+    }
+
+    // Opens on hover for the mouse, and through the toggle button
+    // (aria-expanded, class "open") for the keyboard.
+    &:hover,
+    &.open {
 
       &>a,
       span {

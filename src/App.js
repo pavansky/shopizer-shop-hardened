@@ -16,6 +16,8 @@ import {
   setShopizerCartID
 } from "./redux/actions/cartActions";
 import env from './util/env';
+import { accessibleThemeColor } from './util/contrast';
+import { watchLabels } from './util/a11y';
 
 // var sha512 = require('js-sha512').sha512;
 // home pages
@@ -59,7 +61,9 @@ const App = (props) => {
       console.log('cookie !!! ' + cookie);
       props.dispatch(setShopizerCartID(cookie));
     }
-    document.documentElement.style.setProperty('--theme-color', env.APP_THEME_COLOR)
+    // A light merchant colour (the default #D1D1D1 gives 1.53:1 behind white
+    // text) is darkened to the nearest shade that reaches 4.5:1.
+    document.documentElement.style.setProperty('--theme-color', accessibleThemeColor(env.APP_THEME_COLOR))
     //if(cookies[cart_cookie]) {
     //  console.log('cookie !!! ' + cookies[cart_cookie]);
     //  props.dispatch(setShopizerCartID(cookies[cart_cookie]));
@@ -73,6 +77,9 @@ const App = (props) => {
       })
     );
   });
+
+  // Link visible labels to their form fields on every view.
+  useEffect(() => watchLabels(document), []);
 
   return (
     <ToastProvider placement="bottom-left">

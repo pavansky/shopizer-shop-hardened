@@ -32,6 +32,15 @@ $heading-color: #000000;
 // Theme Color
 // $theme-color: #fb799c;
 $theme-color: var(--theme-color);
+// App.js sets --theme-color to a shade of APP_THEME_COLOR with at least 4.5:1
+// contrast against #F0F0F0, so white text on it, and it as text on white or
+// on the light grey panels, pass WCAG 1.4.3.
+// Text placed on a $theme-color background.
+$on-theme-color: #ffffff;
+// Keyboard focus ring: 5.9:1 against white.
+$focus-color: #005fcc;
+// Secondary text on white (4.6:1 or better).
+$muted-text: #6b6b6b;
 // $theme-color: #7c515d;
 
 // Responsive Variables

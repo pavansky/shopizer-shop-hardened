@@ -110,15 +110,61 @@ span {
   transition: all 0.3s ease 0s;
 }
 
-*:focus {
-  outline: none !important;
+// Focus indicator (WCAG 2.4.7). Keyboard focus always shows a ring; a mouse
+// click does not, in browsers that support :focus-visible. Browsers without
+// it ignore both rules and keep their default outline.
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid $focus-color !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px $white;
 }
 
 a:focus {
   text-decoration: none;
 
   color: inherit;
-  outline: none;
+}
+
+// "Skip to content" link: hidden until it receives keyboard focus.
+.skip-link {
+  position: absolute;
+  z-index: 10000;
+  top: 0;
+  left: 0;
+
+  padding: 12px 20px;
+
+  transform: translateY(-120%);
+
+  color: $white;
+  background: $black;
+
+  &:focus,
+  &:focus-visible {
+    transform: translateY(0);
+
+    color: $white;
+  }
+}
+
+.visually-hidden {
+  position: absolute !important;
+
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+
+  white-space: nowrap;
+
+  border: 0;
 }
 
 a:hover {
@@ -2058,4 +2104,9 @@ a.default-btn {
 
 .main-color {
   color: $theme-color
+}
+// The skip link target takes focus programmatically; no ring around the page.
+#main-content:focus {
+  outline: none !important;
+  box-shadow: none;
 }

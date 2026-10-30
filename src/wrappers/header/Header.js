@@ -126,7 +126,7 @@ const Header = ({
             <div className="col-xl-2 col-lg-2 col-md-6 col-4">
               {/* header logo */}
               {
-                merchant.logo != null && <Logo imageUrl={merchant.logo.path} logoClass="logo" />
+                merchant.logo != null && <Logo imageUrl={merchant.logo.path} logoClass="logo" name={merchant.name} />
               }
 
             </div>

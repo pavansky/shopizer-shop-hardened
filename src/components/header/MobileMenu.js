@@ -50,6 +50,7 @@ const MobileMenu = ({ categories, contents }) => {
         className="offcanvas-menu-close"
         id="mobile-menu-close-trigger"
         onClick={() => closeMobileMenu()}
+        aria-label="Close menu"
       >
         <i className="pe-7s-close"></i>
       </button>

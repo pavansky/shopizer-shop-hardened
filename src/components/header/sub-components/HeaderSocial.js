@@ -7,6 +7,7 @@ const HeaderSocial = () => {
         <li>
           <a
             className="facebook"
+            aria-label="Facebook"
             href="//www.facebook.com"
             target="_blank"
             rel="noopener noreferrer"
@@ -17,6 +18,7 @@ const HeaderSocial = () => {
         <li>
           <a
             className="dribbble"
+            aria-label="Dribbble"
             href="//www.dribbble.com"
             target="_blank"
             rel="noopener noreferrer"
@@ -27,6 +29,7 @@ const HeaderSocial = () => {
         <li>
           <a
             className="pinterest"
+            aria-label="Pinterest"
             href="//www.pinterest.com"
             target="_blank"
             rel="noopener noreferrer"
@@ -37,6 +40,7 @@ const HeaderSocial = () => {
         <li>
           <a
             className="twitter"
+            aria-label="Twitter"
             href="//www.twitter.com"
             target="_blank"
             rel="noopener noreferrer"
