@@ -12,7 +12,8 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
-  # browser tests (tests/e2e); keep @playwright/test in step with the image CI uses
+  # browser tests (tests/e2e); CI installs the matching browser with npx playwright install,
+  # so an update here needs no other change
   - package-ecosystem: npm
     directory: /tests/e2e
     schedule: { interval: weekly, day: monday }
