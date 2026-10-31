@@ -26,8 +26,16 @@
         }
       }
 
+      // The current tab must read as current: upstream coloured it with the light
+      // theme colour, so the tab you were on looked inactive.
+      a h4 {
+        color: $muted-text;
+      }
+
       a.active h4 {
-        color: $theme-color;
+        color: #000;
+        text-decoration: underline;
+        text-underline-offset: 6px;
       }
 
       &:before {
