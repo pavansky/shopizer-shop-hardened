@@ -105,12 +105,17 @@ const RecentOrder = ({
                                     <tr key={key}>
                                       <td className="product-thumbnail">
                                         <Link onClick={() => onClickItem(orderItem.product)} to={"/product/" + orderItem.product.description.friendlyUrl}>
-                                          <img
-                                            style={{ width: 140 }}
-                                            className="img-fluid"
-                                            src={orderItem.product.image.imageUrl}
-                                            alt={orderItem.productName}
-                                          />
+                                          {/* products may have no image; render the name instead of crashing the page */}
+                                          {orderItem.product.image && orderItem.product.image.imageUrl ? (
+                                            <img
+                                              style={{ width: 140 }}
+                                              className="img-fluid"
+                                              src={orderItem.product.image.imageUrl}
+                                              alt={orderItem.productName}
+                                            />
+                                          ) : (
+                                            <span>{orderItem.productName}</span>
+                                          )}
                                         </Link>
                                       </td>
 
